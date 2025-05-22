@@ -1,0 +1,102 @@
+{
+  "services": {
+    "backend-api": {
+      "name": "Backend API Server",
+      "description": "Node.js backend API for serving data",
+      "workingDir": "",
+      "command": "npm start",
+      "type": "service"
+    },
+    "test1": {
+      "name": "test1",
+      "description": "",
+      "command": "npm go"
+    },
+    "galaxy-generator-service": {
+      "name": "Galaxy Generator Service",
+      "description": "backend for the galaxy generator",
+      "command": "npm start",
+      "workingDir": "./experiments/galaxy-generator"
+    }
+  },
+  "commands": {
+    "install-deps": {
+      "name": "Install Dependencies",
+      "description": "Install npm dependencies",
+      "workingDir": "",
+      "command": "npm install"
+    },
+    "run-tests": {
+      "name": "Run Tests",
+      "description": "Execute test suite",
+      "workingDir": "",
+      "command": "npm test"
+    },
+    "build-project": {
+      "name": "Build Project",
+      "description": "Build for production",
+      "workingDir": "",
+      "command": "npm run build"
+    },
+    "hello-world": {
+      "name": "hello world test",
+      "description": "just echo hello world",
+      "command": "echo hello world"
+    },
+    "test2": {
+      "name": "test2",
+      "description": "",
+      "command": "echo testing 1 2 3"
+    },
+    "test1": {
+      "name": "test1",
+      "description": "",
+      "command": "echo this is a test"
+    }
+  },
+  "workflows": {
+    "test1": {
+      "name": "test1",
+      "description": "test",
+      "steps": [
+        {
+          "name": "Is this thing on?",
+          "type": "existing-command",
+          "commandId": "hello-world",
+          "continueOnError": false
+        },
+        {
+          "name": "Testing",
+          "type": "existing-command",
+          "commandId": "test1",
+          "continueOnError": false
+        },
+        {
+          "name": "Final test",
+          "type": "existing-command",
+          "commandId": "test2",
+          "continueOnError": false
+        }
+      ]
+    },
+    "galaxy-generator-workflow": {
+      "name": "Galaxy Generator",
+      "description": "starts the galaxy generator backend",
+      "workingDir": "./experiments/galaxy-generator",
+      "steps": [
+        {
+          "name": "Installing Dependencies",
+          "type": "existing-command",
+          "commandId": "install-deps",
+          "continueOnError": false
+        },
+        {
+          "name": "Create the universe",
+          "type": "existing-service",
+          "serviceId": "galaxy-generator-service",
+          "continueOnError": false
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,520 @@
+/* Service and Workflow Control Styles - Enhanced for Separate Pages */
+
+/* Service Controls Container */
+.service-controls {
+    margin-bottom: 1.5rem;
+    padding: 1.25rem;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e8e8e8;
+    flex-shrink: 0;
+}
+
+.service-controls .title {
+    margin-bottom: 0.75rem !important;
+    color: #363636;
+}
+
+.service-controls .help {
+    margin-bottom: 1rem;
+    color: #666;
+}
+
+.service-buttons-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+/* Required Workflows Section */
+.required-workflows {
+    margin-bottom: 1.5rem;
+    padding: 1.25rem;
+    background-color: #fff5f5;
+    border-radius: 8px;
+    border: 1px solid #fecaca;
+    flex-shrink: 0;
+}
+
+.required-workflows .title {
+    margin-bottom: 0.75rem !important;
+    color: #dc2626;
+}
+
+.required-workflows .help {
+    margin-bottom: 1rem;
+    color: #b91c1c;
+}
+
+.workflow-buttons-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+/* Documentation Section */
+.documentation-section {
+    margin-bottom: 1.5rem;
+    padding: 1.25rem;
+    background-color: #f0f9ff;
+    border-radius: 8px;
+    border: 1px solid #bae6fd;
+    flex-shrink: 0;
+}
+
+.documentation-section .title {
+    margin-bottom: 0.75rem !important;
+    color: #0369a1;
+}
+
+.documentation-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.documentation-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s ease;
+}
+
+.documentation-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(3, 105, 161, 0.2);
+}
+
+/* Service and Workflow Cards */
+.service-card,
+.workflow-card,
+.command-card {
+    background-color: white;
+    border: 1px solid #e8e8e8;
+    border-radius: 8px;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.service-card:hover,
+.workflow-card:hover,
+.command-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    border-color: #3273dc;
+    transform: translateY(-2px);
+}
+
+.service-card:last-child,
+.workflow-card:last-child,
+.command-card:last-child {
+    margin-bottom: 0;
+}
+
+/* Command card specific styling */
+.command-card {
+    border-left: 4px solid #3273dc;
+}
+
+.command-card .service-card-title i {
+    color: #3273dc;
+}
+
+.service-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.service-card-title {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-weight: 600;
+    color: #363636;
+    flex: 1;
+    font-size: 1.1rem;
+}
+
+.service-name,
+.workflow-name {
+    word-break: break-word;
+    flex: 1;
+    line-height: 1.4;
+}
+
+.service-card-description {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 1rem;
+    line-height: 1.5;
+    min-height: 1.5em;
+}
+
+.service-card-meta {
+    font-size: 0.8rem;
+    color: #999;
+    margin-bottom: 1rem;
+    padding: 0.75rem;
+    background-color: #f8f9fa;
+    border-radius: 6px;
+    border: 1px solid #f0f0f0;
+}
+
+.service-card-meta i {
+    margin-right: 0.5rem;
+    color: #666;
+}
+
+.service-card-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.service-card-actions .field.has-addons {
+    margin-bottom: 0;
+}
+
+/* Page-specific containers */
+.services-container,
+.commands-container,
+.workflows-container {
+    flex: 1;
+    min-height: 0; /* Critical for proper scrolling */
+    overflow-y: auto;
+    overflow-x: hidden;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 1.5rem;
+    border: 1px solid #e8e8e8;
+}
+
+/* Empty state containers */
+.services-container .has-text-centered,
+.commands-container .has-text-centered,
+.workflows-container .has-text-centered {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
+    padding: 2rem;
+}
+
+/* Service Button States */
+.service-button,
+.workflow-button {
+    margin-right: 0.5rem;
+    margin-bottom: 0.5rem;
+    display: inline-flex;
+    align-items: center;
+    transition: all 0.2s ease;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+}
+
+.service-button .icon,
+.workflow-button .icon {
+    margin-left: 0.5rem;
+}
+
+/* Service Button States */
+.service-running {
+    background-color: #48c774 !important;
+    border-color: #48c774 !important;
+    color: white !important;
+}
+
+.service-running:hover {
+    background-color: #3ec46d !important;
+    border-color: #3ec46d !important;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(72, 199, 116, 0.3);
+}
+
+.service-stopped {
+    background-color: #f14668 !important;
+    border-color: #f14668 !important;
+    color: white !important;
+}
+
+.service-stopped:hover {
+    background-color: #f03a5f !important;
+    border-color: #f03a5f !important;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(241, 70, 104, 0.3);
+}
+
+/* Workflow Button Styles */
+.workflow-button {
+    background-color: #3273dc !important;
+    border-color: #3273dc !important;
+    color: white !important;
+}
+
+.workflow-button:hover {
+    background-color: #2366d1 !important;
+    border-color: #2366d1 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(50, 115, 220, 0.3);
+}
+
+/* Console Button Styles */
+.console-button {
+    background-color: #363636 !important;
+    border-color: #363636 !important;
+    color: white !important;
+    margin-left: 0.25rem;
+}
+
+.console-button:hover {
+    background-color: #4a4a4a !important;
+    border-color: #4a4a4a !important;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(54, 54, 54, 0.3);
+}
+
+/* Service Status Indicators */
+.service-status-indicator {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 0.75rem;
+    flex-shrink: 0;
+}
+
+.service-status-indicator.running {
+    background-color: #48c774;
+    animation: pulse 2s infinite;
+}
+
+.service-status-indicator.stopped {
+    background-color: #f14668;
+}
+
+.service-status-indicator.error {
+    background-color: #f14668;
+    animation: blink 1s infinite;
+}
+
+/* Service List in Sidebar */
+.services-list,
+.commands-list,
+.workflows-list {
+    flex: 1;
+    overflow-y: auto;
+    padding-right: 0.5rem;
+}
+
+/* Button Loading State */
+.service-button.is-loading,
+.workflow-button.is-loading {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.service-button.is-loading::after,
+.workflow-button.is-loading::after {
+    animation: spinAround 500ms infinite linear;
+    border: 2px solid transparent;
+    border-top-color: currentColor;
+    border-radius: 50%;
+    content: "";
+    display: block;
+    height: 1em;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 1em;
+}
+
+/* Workflow Creation Styles */
+.workflow-steps {
+    max-height: 500px;
+    overflow-y: auto;
+    border: 1px solid #dbdbdb;
+    border-radius: 8px;
+    padding: 1.25rem;
+    background-color: #fafafa;
+}
+
+.workflow-step {
+    margin-bottom: 1.5rem;
+}
+
+.workflow-step:last-of-type {
+    margin-bottom: 0;
+}
+
+.workflow-step .box {
+    background-color: white;
+    border: 1px solid #e8e8e8;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.step-fields {
+    margin-top: 1.25rem;
+}
+
+.add-step-button {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 2px dashed #dbdbdb;
+}
+
+/* Modal Improvements */
+.modal-card {
+    max-height: 90vh;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.modal-card-body {
+    max-height: calc(90vh - 200px);
+    overflow-y: auto;
+}
+
+/* Documentation Modal */
+.modal-card-body .content {
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+.modal-card-body .content pre {
+    background-color: #f8f9fa;
+    border: 1px solid #e8e8e8;
+    border-radius: 4px;
+    padding: 1rem;
+    overflow-x: auto;
+}
+
+.modal-card-body .content code {
+    background-color: #f1f3f4;
+    padding: 0.2em 0.4em;
+    border-radius: 3px;
+    font-size: 0.9em;
+}
+
+.modal-card-body .content blockquote {
+    border-left: 4px solid #3273dc;
+    padding-left: 1rem;
+    margin-left: 0;
+    background-color: #f8f9ff;
+    padding: 1rem;
+    border-radius: 0 4px 4px 0;
+}
+
+/* Enhanced Button Groups */
+.field.has-addons .control:first-child .button {
+    border-radius: 6px 0 0 6px;
+}
+
+.field.has-addons .control:last-child .button {
+    border-radius: 0 6px 6px 0;
+}
+
+.field.has-addons .control:not(:first-child):not(:last-child) .button {
+    border-radius: 0;
+}
+
+/* Animations */
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(72, 199, 116, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(72, 199, 116, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(72, 199, 116, 0);
+    }
+}
+
+@keyframes blink {
+    0%, 50% {
+        opacity: 1;
+    }
+    51%, 100% {
+        opacity: 0.3;
+    }
+}
+
+@keyframes spinAround {
+    from {
+        transform: translate(-50%, -50%) rotate(0deg);
+    }
+    to {
+        transform: translate(-50%, -50%) rotate(360deg);
+    }
+}
+
+/* Responsive Service Controls */
+@media screen and (max-width: 768px) {
+    .service-buttons-container,
+    .workflow-buttons-container,
+    .documentation-buttons {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .service-button,
+    .workflow-button,
+    .documentation-button {
+        width: 100%;
+        margin-right: 0;
+        justify-content: center;
+        margin-bottom: 0.75rem;
+    }
+    
+    .field.has-addons {
+        flex-direction: column;
+    }
+    
+    .field.has-addons .control {
+        width: 100%;
+    }
+    
+    .field.has-addons .control .button {
+        width: 100%;
+        border-radius: 6px !important;
+        margin-bottom: 0.5rem;
+    }
+    
+    .console-button {
+        width: 100%;
+        margin-top: 0.5rem;
+        margin-left: 0;
+    }
+    
+    .service-card-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .service-card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+    
+    .workflow-steps {
+        max-height: 400px;
+    }
+    
+    /* Page containers responsive */
+    .services-container,
+    .commands-container,
+    .workflows-container {
+        min-height: 300px;
+        padding: 1rem;
+    }
+}

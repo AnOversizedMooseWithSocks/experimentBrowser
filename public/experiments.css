@@ -1,0 +1,434 @@
+/* Experiment-specific Styles */
+
+/* Experiment List */
+.experiment-list,
+.services-list,
+.commands-list,
+.workflows-list {
+    flex: 1;
+    overflow-y: auto;
+    padding-right: 0.5rem;
+}
+
+.experiment-item {
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    border: 1px solid #e8e8e8;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background-color: white;
+}
+
+.experiment-item:hover {
+    border-color: #3273dc;
+    box-shadow: 0 2px 8px rgba(50, 115, 220, 0.15);
+}
+
+.experiment-item.is-active {
+    border-color: #3273dc;
+    background-color: #f0f8ff;
+}
+
+.experiment-item .title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    line-height: 1.4;
+    color: #363636;
+}
+
+.experiment-item .subtitle {
+    font-size: 0.875rem;
+    color: #666;
+    margin-bottom: 0.5rem;
+    line-height: 1.4;
+}
+
+.experiment-item .tags {
+    margin-bottom: 0.5rem;
+}
+
+.experiment-item .tags .tag {
+    margin-right: 0.25rem;
+    margin-bottom: 0.25rem;
+}
+
+.experiment-rating {
+    margin-top: 0.5rem;
+}
+
+.star {
+    color: #ffd700;
+    margin-right: 2px;
+}
+
+.star.empty {
+    color: #e0e0e0;
+}
+
+/* Experiment Frame - Full Screen */
+.experiment-frame {
+    position: fixed;
+    top: 52px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: white;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+}
+
+.experiment-frame.sidebar-visible {
+    left: 350px;
+}
+
+.frame-header {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #e8e8e8;
+    background-color: #fafafa;
+    flex-shrink: 0;
+}
+
+/* Fix frame-header title spacing */
+.frame-header .title {
+    margin-bottom: 0 !important;
+    line-height: 1.2 !important;
+}
+
+.experiment-frame iframe {
+    flex: 1;
+    width: 100%;
+    height: 100%;
+    border: none;
+    background-color: white;
+}
+
+/* Default state */
+#defaultState {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: calc(100vh - 52px - 3rem);
+}
+
+/* Experiment Details */
+#experimentDetails {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+/* Fix experiment details title and rating spacing */
+#experimentDetails .level {
+    margin-bottom: 1rem;
+}
+
+#experimentDetails .title {
+    margin-bottom: 0.5rem !important;
+    line-height: 1.2 !important;
+}
+
+#experimentDetails .subtitle {
+    margin-top: 0 !important;
+    margin-bottom: 0.75rem !important;
+    line-height: 1.4 !important;
+}
+
+/* Required Workflows and Service Controls */
+.required-workflows,
+.service-controls {
+    background-color: #f8f9fa;
+    border-radius: 6px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid #e8e8e8;
+    flex-shrink: 0;
+}
+
+/* Enhanced Required Workflows styling */
+.required-workflows {
+    background-color: #fef7e0;
+    border: 1px solid #f9d71c;
+}
+
+.required-workflows .title,
+.service-controls .title {
+    margin-bottom: 0.75rem !important;
+    color: #363636;
+}
+
+.required-workflows .help,
+.service-controls .help {
+    margin-bottom: 1rem;
+    color: #666;
+}
+
+.workflow-buttons-container,
+.service-buttons-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 0.75rem;
+}
+
+/* Workflow Button Container with Status */
+.workflow-button-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+    min-width: 200px;
+}
+
+.workflow-button-container .field.has-addons {
+    margin-bottom: 0.5rem;
+}
+
+/* Workflow Status Information */
+.workflow-status-info {
+    font-size: 0.8rem;
+    line-height: 1.3;
+    margin-top: 0.25rem;
+    max-width: 100%;
+}
+
+.workflow-status-info small {
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+.workflow-status-info .has-text-success {
+    color: #22543d !important;
+    font-weight: 500;
+}
+
+.workflow-status-info .has-text-warning {
+    color: #b45309 !important;
+    font-style: italic;
+}
+
+.workflow-status-info .has-text-grey {
+    color: #666 !important;
+}
+
+.workflow-status-info .fas.fa-circle {
+    font-size: 0.6rem;
+    margin-right: 0.25rem;
+    animation: pulse-green 2s infinite;
+}
+
+/* Required Workflows Status Indicator */
+.required-workflows-status {
+    margin-bottom: 1rem;
+}
+
+.required-workflows-status .notification {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    border-radius: 6px;
+    margin-bottom: 0;
+}
+
+.required-workflows-status .notification.is-success {
+    background-color: #d4f6d8;
+    border: 1px solid #a2e5ab;
+    color: #22543d;
+}
+
+.required-workflows-status .notification.is-warning {
+    background-color: #fdf3c7;
+    border: 1px solid #f9d71c;
+    color: #744210;
+}
+
+/* Load Experiment Button States */
+#loadExperimentBtn {
+    transition: all 0.2s ease;
+}
+
+#loadExperimentBtn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background-color: #f5f5f5 !important;
+    color: #999 !important;
+    border-color: #ddd !important;
+}
+
+#loadExperimentBtn:not(:disabled):hover {
+    background-color: #2366d1 !important;
+    border-color: #2366d1 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(50, 115, 220, 0.3);
+}
+
+/* Documentation Section */
+.documentation-section {
+    background-color: #f8f9fa;
+    border-radius: 6px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid #e8e8e8;
+    flex-shrink: 0;
+}
+
+.documentation-section .title {
+    margin-bottom: 0.75rem !important;
+    color: #363636;
+}
+
+.documentation-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.documentation-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Tags */
+.tags .tag {
+    margin-right: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+/* Action Buttons */
+.action-buttons {
+    margin-top: 1.5rem;
+    flex-shrink: 0;
+}
+
+.action-buttons .button {
+    margin-right: 0.5rem;
+}
+
+/* Service Cards */
+.service-card,
+.workflow-card,
+.command-card {
+    background-color: white;
+    border: 1px solid #e8e8e8;
+    border-radius: 6px;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    transition: all 0.2s ease;
+}
+
+.service-card:hover,
+.workflow-card:hover,
+.command-card:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    border-color: #3273dc;
+}
+
+/* Experiment Frame Fullscreen Mode */
+.experiment-frame.is-fullscreen {
+    position: fixed;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    z-index: 2000;
+}
+
+.experiment-frame.is-fullscreen iframe {
+    height: 100vh;
+}
+
+/* Fullscreen button styles */
+.fullscreen-btn {
+    margin-right: 0.5rem;
+}
+
+/* Exit fullscreen button - centered at the top */
+.exit-fullscreen-btn {
+    position: fixed;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 2100;
+    background-color: rgba(0, 0, 0, 0.7) !important;
+    color: white !important;
+    border: none !important;
+    padding: 0.5rem 1rem;
+    border-radius: 30px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    opacity: 0.7;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.exit-fullscreen-btn:hover {
+    opacity: 1;
+    transform: translateX(-50%) scale(1.05);
+}
+
+/* Add transition for smoother toggle */
+.experiment-frame {
+    transition: all 0.3s ease;
+}
+
+/* Animations */
+@keyframes pulse-green {
+    0% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+/* Responsive design for experiments */
+@media screen and (max-width: 768px) {
+    .experiment-frame {
+        top: 52px;
+        left: 0;
+    }
+    
+    /* Ensure proper spacing on mobile */
+    .page-header .title {
+        font-size: 1.5rem !important;
+    }
+    
+    .page-header .subtitle {
+        font-size: 1rem !important;
+    }
+    
+    /* Button responsiveness */
+    .action-buttons .button {
+        width: 100%;
+        margin-bottom: 0.5rem;
+        margin-right: 0;
+    }
+    
+    /* Required workflows status responsive */
+    .required-workflows-status .notification {
+        flex-direction: column;
+        text-align: center;
+        gap: 0.25rem;
+    }
+    
+    /* Workflow button containers responsive */
+    .workflow-buttons-container {
+        flex-direction: column;
+    }
+    
+    .workflow-button-container {
+        width: 100%;
+        min-width: auto;
+    }
+    
+    .workflow-status-info {
+        font-size: 0.75rem;
+    }
+}

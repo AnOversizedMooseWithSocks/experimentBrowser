@@ -1,0 +1,307 @@
+/* Workflow Progress Modal Styles - Enhanced with better visual indicators */
+
+.workflow-progress-container {
+    text-align: left;
+    min-width: 400px;
+    max-width: 600px;
+}
+
+.progress-header {
+    margin-bottom: 1.5rem;
+}
+
+.progress-header .title {
+    margin-bottom: 1rem !important;
+    color: #363636;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.progress-header .title::before {
+    content: '⚙️';
+    font-size: 1.2rem;
+}
+
+.progress-bar-container {
+    margin-bottom: 1rem;
+}
+
+.progress {
+    margin-bottom: 0.5rem !important;
+    border-radius: 8px;
+    height: 1rem;
+}
+
+.progress::-webkit-progress-bar {
+    background-color: #e8e8e8;
+    border-radius: 8px;
+}
+
+.progress::-webkit-progress-value {
+    background: linear-gradient(90deg, #3273dc, #48c774);
+    border-radius: 8px;
+    transition: width 0.3s ease;
+}
+
+.progress::-moz-progress-bar {
+    background: linear-gradient(90deg, #3273dc, #48c774);
+    border-radius: 8px;
+}
+
+.progress-text {
+    text-align: center;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #4a4a4a;
+    padding: 0.5rem;
+    background-color: #f8f9fa;
+    border-radius: 6px;
+    border: 1px solid #e8e8e8;
+}
+
+.workflow-list {
+    max-height: 350px;
+    overflow-y: auto;
+    border: 1px solid #e8e8e8;
+    border-radius: 8px;
+    background-color: #fafafa;
+}
+
+.workflow-progress-item {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    margin-bottom: 0.5rem;
+    background-color: white;
+    border-radius: 6px;
+    border: 1px solid #e8e8e8;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.workflow-progress-item:last-child {
+    margin-bottom: 0;
+}
+
+.workflow-progress-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background-color: #e8e8e8;
+    transition: background-color 0.3s ease;
+}
+
+.workflow-progress-item.status-running::before {
+    background-color: #3273dc;
+    background: linear-gradient(180deg, #3273dc, #48c774);
+    animation: pulse-border 2s infinite;
+}
+
+.workflow-progress-item.status-completed::before {
+    background-color: #48c774;
+}
+
+.workflow-progress-item.status-error::before {
+    background-color: #f14668;
+}
+
+.workflow-progress-icon {
+    margin-right: 1rem;
+    width: 24px;
+    text-align: center;
+    position: relative;
+}
+
+.workflow-progress-icon i {
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+}
+
+.workflow-progress-icon .fa-spin {
+    animation: fa-spin 2s infinite linear;
+}
+
+.workflow-progress-info {
+    flex: 1;
+}
+
+.workflow-progress-name {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #363636;
+    margin-bottom: 0.25rem;
+    line-height: 1.3;
+}
+
+.workflow-progress-status {
+    font-size: 0.85rem;
+    color: #666;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+/* Status-specific styling */
+.workflow-progress-item.status-running .workflow-progress-status {
+    color: #3273dc;
+}
+
+.workflow-progress-item.status-completed .workflow-progress-status {
+    color: #48c774;
+}
+
+.workflow-progress-item.status-error .workflow-progress-status {
+    color: #f14668;
+}
+
+/* Loading modal enhancements */
+.modal-content .box {
+    max-width: 700px;
+    min-width: 500px;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+}
+
+.modal-content .box .title {
+    text-align: center;
+    color: #363636;
+    margin-bottom: 1.5rem !important;
+}
+
+/* Animations */
+@keyframes pulse-border {
+    0% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.6;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+@keyframes slideInUp {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.workflow-progress-item {
+    animation: slideInUp 0.3s ease;
+}
+
+/* Scrollbar styling */
+.workflow-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+.workflow-list::-webkit-scrollbar-track {
+    background: #f8f9fa;
+    border-radius: 4px;
+}
+
+.workflow-list::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+.workflow-list::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* Required workflows enhanced styling */
+.required-workflows {
+    background: linear-gradient(135deg, #fef7e0 0%, #fdf4d3 100%);
+    border: 1px solid #f9d71c;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.required-workflows::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #f9d71c, #f39c12);
+}
+
+.required-workflows .title {
+    color: #b8860b !important;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem !important;
+    font-weight: 700;
+}
+
+.required-workflows .help {
+    color: #a0750b;
+    font-style: italic;
+    background-color: rgba(255, 255, 255, 0.6);
+    padding: 0.75rem;
+    border-radius: 6px;
+    border-left: 3px solid #f9d71c;
+    margin-bottom: 1rem;
+}
+
+/* Enhanced progress text styling */
+.progress-text.completed {
+    background: linear-gradient(135deg, #d4edda, #c3e6cb);
+    color: #155724;
+    border-color: #48c774;
+}
+
+.progress-text.error {
+    background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+    color: #721c24;
+    border-color: #f14668;
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 768px) {
+    .workflow-progress-container {
+        min-width: 300px;
+        max-width: 90vw;
+    }
+    
+    .modal-content .box {
+        min-width: auto;
+        margin: 1rem;
+    }
+    
+    .workflow-progress-item {
+        padding: 0.75rem;
+        margin-bottom: 0.75rem;
+    }
+    
+    .workflow-progress-name {
+        font-size: 0.9rem;
+    }
+    
+    .workflow-progress-status {
+        font-size: 0.8rem;
+    }
+    
+    .workflow-list {
+        max-height: 250px;
+    }
+    
+    .progress-header .title {
+        font-size: 1.1rem;
+    }
+}

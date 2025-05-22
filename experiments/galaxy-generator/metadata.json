@@ -1,0 +1,13 @@
+{
+  "name": "Galaxy Generator",
+  "description": "Experiment: Galaxy Generator",
+  "rating": 0,
+  "tags": [],
+  "requiredWorkflows": [
+    "galaxy-generator-workflow"
+  ],
+  "optionalWorkflows": [
+    "test1"
+  ],
+  "relatedExperiments": []
+}

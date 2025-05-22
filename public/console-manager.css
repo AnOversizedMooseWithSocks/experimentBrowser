@@ -1,0 +1,121 @@
+/* Console Manager Overlay Styles */
+
+.console-manager-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 2000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.console-manager-content {
+    background-color: white;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 800px;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+
+.console-manager-header {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #e8e8e8;
+    background-color: #f8f9fa;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 8px 8px 0 0;
+}
+
+.console-manager-header .title {
+    margin: 0 !important;
+}
+
+.console-manager-body {
+    padding: 1rem;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.console-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.console-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-radius: 6px;
+    border: 1px solid #e8e8e8;
+    transition: background-color 0.2s ease;
+}
+
+.console-item:hover {
+    background-color: #f0f8ff;
+}
+
+.console-item-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.console-item-name {
+    font-weight: 500;
+    font-size: 1rem;
+}
+
+.console-item-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* Console count badge */
+#consoleCount {
+    margin-left: 0.5rem;
+}
+
+/* Console item status styling */
+.console-item .tag.is-warning {
+    background-color: #ffdd57;
+    color: #363636;
+}
+
+.console-item .tag.is-info {
+    background-color: #3273dc;
+    color: white;
+}
+
+/* Responsive console manager */
+@media screen and (max-width: 768px) {
+    .console-manager-content {
+        width: 95%;
+        max-height: 90vh;
+    }
+    
+    .console-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+    
+    .console-item-actions {
+        align-self: stretch;
+        justify-content: center;
+    }
+    
+    .console-item-actions .button {
+        flex: 1;
+    }
+}

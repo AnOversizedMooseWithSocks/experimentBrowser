@@ -1,0 +1,146 @@
+/* Shared Utilities and Common Styles */
+
+/* Custom scrollbars */
+.experiment-list::-webkit-scrollbar,
+.services-list::-webkit-scrollbar,
+.commands-list::-webkit-scrollbar,
+.workflows-list::-webkit-scrollbar,
+.content-area::-webkit-scrollbar,
+.services-container::-webkit-scrollbar,
+.commands-container::-webkit-scrollbar,
+.workflows-container::-webkit-scrollbar,
+.console-manager-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.experiment-list::-webkit-scrollbar-track,
+.services-list::-webkit-scrollbar-track,
+.commands-list::-webkit-scrollbar-track,
+.workflows-list::-webkit-scrollbar-track,
+.content-area::-webkit-scrollbar-track,
+.services-container::-webkit-scrollbar-track,
+.commands-container::-webkit-scrollbar-track,
+.workflows-container::-webkit-scrollbar-track,
+.console-manager-body::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.experiment-list::-webkit-scrollbar-thumb,
+.services-list::-webkit-scrollbar-thumb,
+.commands-list::-webkit-scrollbar-thumb,
+.workflows-list::-webkit-scrollbar-thumb,
+.content-area::-webkit-scrollbar-thumb,
+.services-container::-webkit-scrollbar-thumb,
+.commands-container::-webkit-scrollbar-thumb,
+.workflows-container::-webkit-scrollbar-thumb,
+.console-manager-body::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+.experiment-list::-webkit-scrollbar-thumb:hover,
+.services-list::-webkit-scrollbar-thumb:hover,
+.commands-list::-webkit-scrollbar-thumb:hover,
+.workflows-list::-webkit-scrollbar-thumb:hover,
+.content-area::-webkit-scrollbar-thumb:hover,
+.services-container::-webkit-scrollbar-thumb:hover,
+.commands-container::-webkit-scrollbar-thumb:hover,
+.workflows-container::-webkit-scrollbar-thumb:hover,
+.console-manager-body::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* Animations */
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Notification toast */
+.notification-toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    min-width: 300px;
+    animation: slideIn 0.3s ease-out;
+}
+
+/* Global responsive design */
+@media screen and (max-width: 768px) {
+    .layout-columns {
+        flex-direction: column;
+    }
+    
+    .sidebar-column {
+        width: 100%;
+        min-width: 100%;
+        height: 40vh;
+        border-right: none;
+        border-bottom: 1px solid #e8e8e8;
+    }
+    
+    .sidebar-column.collapsed {
+        height: 0;
+    }
+    
+    .content-column {
+        flex: 1;
+        min-height: 60vh;
+    }
+    
+    /* Page headers responsive */
+    .page-header {
+        padding: 1rem;
+    }
+    
+    .page-header .level {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .page-header .level-right {
+        align-self: stretch;
+    }
+    
+    .page-header .field.is-grouped {
+        flex-direction: column;
+    }
+    
+    .page-header .field.is-grouped .control {
+        width: 100%;
+    }
+    
+    .page-header .field.is-grouped .button {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    /* Hide button text on mobile for navbar */
+    .navbar-item .button span {
+        display: none;
+    }
+    
+    .navbar-item .button i {
+        margin: 0;
+    }
+    
+    /* Navbar end buttons responsive */
+    .navbar-end .buttons {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .navbar-end .buttons .button {
+        width: 100%;
+        justify-content: center;
+        margin-bottom: 0.5rem;
+    }
+}

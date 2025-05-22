@@ -1,0 +1,209 @@
+/* Modal Styles */
+
+/* Edit Modal Styles */
+.modal-card-head {
+    background-color: #f5f5f5;
+}
+
+.field {
+    margin-bottom: 1.5rem;
+}
+
+.label {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.textarea {
+    min-height: 100px;
+}
+
+/* Rating input */
+.rating-input {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.rating-input input[type="range"] {
+    flex: 1;
+}
+
+.rating-display {
+    display: flex;
+    gap: 2px;
+}
+
+.rating-star {
+    color: #ffd700;
+    font-size: 1.2rem;
+}
+
+.rating-star.empty {
+    color: #e0e0e0;
+}
+
+/* Tags input */
+.tags-input {
+    border: 1px solid #dbdbdb;
+    border-radius: 4px;
+    padding: 0.5rem;
+    min-height: 2.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    cursor: text;
+    background-color: white;
+}
+
+.tags-input:focus-within {
+    border-color: #3273dc;
+    box-shadow: 0 0 0 0.125em rgba(50, 115, 220, 0.25);
+}
+
+.tag-item {
+    background-color: #3273dc;
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 3px;
+    font-size: 0.875rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.tag-remove {
+    cursor: pointer;
+    background: none;
+    border: none;
+    color: white;
+    padding: 0;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+}
+
+.tag-remove:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.tag-input {
+    border: none;
+    outline: none;
+    flex: 1;
+    min-width: 100px;
+    padding: 0.25rem;
+    background: transparent;
+}
+
+/* Workflow Selection Container */
+.workflow-selection-container {
+    border: 1px solid #dbdbdb;
+    border-radius: 4px;
+    padding: 1rem;
+    background-color: #fafafa;
+}
+
+.selected-workflows {
+    margin-bottom: 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    min-height: 2rem;
+    align-items: center;
+}
+
+.selected-workflows:empty::before {
+    content: "No workflows selected";
+    color: #999;
+    font-style: italic;
+    font-size: 0.9rem;
+}
+
+.workflow-tag {
+    background-color: #3273dc !important;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.375rem 0.75rem;
+    border-radius: 4px;
+    font-size: 0.875rem;
+}
+
+.workflow-tag .delete {
+    color: white;
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.workflow-tag .delete:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Documentation Modal */
+.modal-card-body .content {
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+.modal-card-body .content pre {
+    background-color: #f8f9fa;
+    border: 1px solid #e8e8e8;
+    border-radius: 4px;
+    padding: 1rem;
+    overflow-x: auto;
+}
+
+.modal-card-body .content code {
+    background-color: #f1f3f4;
+    padding: 0.2em 0.4em;
+    border-radius: 3px;
+    font-size: 0.9em;
+}
+
+.modal-card-body .content blockquote {
+    border-left: 4px solid #3273dc;
+    padding-left: 1rem;
+    margin-left: 0;
+    background-color: #f8f9ff;
+    padding: 1rem;
+    border-radius: 0 4px 4px 0;
+}
+
+/* Responsive Modal Adjustments */
+@media screen and (max-width: 768px) {
+    .modal-card {
+        width: 95%;
+        margin: 1rem auto;
+    }
+    
+    .workflow-selection-container .field.has-addons {
+        flex-direction: column;
+    }
+    
+    .workflow-selection-container .field.has-addons .control {
+        width: 100%;
+    }
+    
+    .workflow-selection-container .field.has-addons .control .select {
+        width: 100%;
+    }
+    
+    .workflow-selection-container .field.has-addons .control .button {
+        width: 100%;
+        margin-top: 0.5rem;
+        border-radius: 4px !important;
+    }
+    
+    .selected-workflows {
+        justify-content: center;
+    }
+    
+    .workflow-tag {
+        width: 100%;
+        justify-content: center;
+    }
+}

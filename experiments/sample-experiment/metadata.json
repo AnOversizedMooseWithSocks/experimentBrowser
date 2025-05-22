@@ -1,0 +1,11 @@
+{
+  "name": "Sample Experiment",
+  "description": "A simple example experiment to show how the browser works",
+  "tags": [
+    "sample",
+    "demo"
+  ],
+  "rating": 5,
+  "relatedExperiments": [],
+  "dependencies": []
+}

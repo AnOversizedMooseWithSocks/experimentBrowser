@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Procedural Galaxy Generator v2 - Enhanced</title>
+    
+    <!-- Add import map to properly handle Three.js modules -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.module.js",
+                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/jsm/"
+            }
+        }
+    </script>
+    
+    <style>
+        /* CSS is unchanged - styles remain the same */
+        body {
+            margin: 0;
+            padding: 0;
+            background: #000;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+        }
+        
+        #canvas-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+        
+        #ui-panel {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            bottom: 20px;
+            background: rgba(0, 0, 0, 0.85);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            width: 350px; /* Increased width for enhanced content */
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            overflow-y: auto;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+
+        #ui-panel.hidden {
+            transform: translateX(-390px);
+            opacity: 0.7;
+        }
+
+        #ui-toggle {
+            position: absolute;
+            top: 20px;
+            left: 390px;
+            width: 50px;
+            height: 50px;
+            background: rgba(0, 0, 0, 0.85);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            z-index: 101;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        #ui-toggle:hover {
+            background: rgba(0, 0, 0, 0.95);
+            transform: scale(1.1);
+        }
+
+        #ui-toggle.panel-hidden {
+            left: 20px;
+        }
+        
+        .control-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 14px;
+            color: #e0e0e0;
+        }
+        
+        input, button, select {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: none;
+            border-radius: 5px;
+            background: #333;
+            color: white;
+            font-size: 14px;
+        }
+        
+        button {
+            background: #4CAF50;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+        
+        button:hover {
+            background: #45a049;
+            transform: translateY(-1px);
+        }
+        
+        .favorite-btn {
+            background: #ff6b6b;
+        }
+        
+        .favorite-btn.favorited {
+            background: #feca57;
+        }
+        
+        .rating-container {
+            display: flex;
+            gap: 5px;
+            margin: 10px 0;
+            justify-content: center;
+        }
+        
+        .star {
+            cursor: pointer;
+            font-size: 22px;
+            color: #444;
+            transition: all 0.2s;
+            text-shadow: 0 0 10px rgba(255, 173, 10, 0.3);
+        }
+        
+        .star.filled {
+            color: #ffad0a;
+            text-shadow: 0 0 15px rgba(255, 173, 10, 0.8);
+        }
+        
+        .star:hover {
+            transform: scale(1.2);
+        }
+        
+        #favorites-list {
+            margin-top: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .favorite-item {
+            background: rgba(51, 51, 51, 0.8);
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .favorite-item:hover {
+            background: rgba(68, 68, 68, 0.9);
+            transform: translateX(5px);
+            border-color: rgba(76, 175, 80, 0.5);
+        }
+        
+        .performance-controls {
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            padding-top: 15px;
+            margin-top: 15px;
+        }
+        
+        .effects-controls {
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            padding-top: 15px;
+            margin-top: 15px;
+        }
+        
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 8px 0;
+        }
+        
+        .slider-container input[type="range"] {
+            flex: 1;
+            margin: 0;
+        }
+        
+        .slider-value {
+            min-width: 50px;
+            text-align: center;
+            font-size: 12px;
+            color: #aaa;
+        }
+        
+        .status {
+            margin-top: 10px;
+            font-size: 12px;
+            color: #aaa;
+            text-align: center;
+            min-height: 20px;
+        }
+        
+        .metadata {
+            background: rgba(33, 33, 33, 0.8);
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            margin-top: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .metadata-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 4px 0;
+            padding: 2px 0;
+        }
+        
+        .metadata-item span:first-child {
+            color: #ccc;
+        }
+        
+        .metadata-item span:last-child {
+            color: #4CAF50;
+            font-weight: 500;
+        }
+        
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        /* Loading overlay styles */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            font-family: Arial, sans-serif;
+        }
+
+        .loading-content {
+            background: rgba(0, 0, 0, 0.9);
+            padding: 40px;
+            border-radius: 10px;
+            text-align: center;
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            max-width: 400px;
+        }
+
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #4CAF50;
+            animation: spin 1s ease-in-out infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Enhanced scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Enhanced keyboard shortcuts help */
+        .shortcuts {
+            background: rgba(33, 33, 33, 0.8);
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 11px;
+            margin-top: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .shortcuts h5 {
+            margin: 0 0 8px 0;
+            color: #4CAF50;
+            font-size: 13px;
+        }
+
+        .shortcut-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 3px 0;
+            align-items: center;
+        }
+
+        .key {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 10px;
+            font-family: monospace;
+        }
+
+        /* Galaxy type indicator */
+        .galaxy-type {
+            background: linear-gradient(45deg, #2196F3, #4CAF50);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 20px;
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 13px;
+            font-weight: 600;
+            box-shadow: 0 2px 10px rgba(76, 175, 80, 0.3);
+        }
+
+        /* Enhanced physics controls section */
+        .physics-controls {
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            padding-top: 15px;
+            margin-top: 15px;
+        }
+
+        .physics-controls h4 {
+            color: #64B5F6;
+            margin: 0 0 10px 0;
+            font-size: 16px;
+        }
+
+        /* Black hole intensity indicator */
+        .blackhole-indicator {
+            text-align: center;
+            margin: 10px 0;
+            padding: 8px;
+            background: rgba(255, 0, 100, 0.1);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 0, 100, 0.3);
+        }
+
+        .blackhole-indicator.active {
+            background: rgba(255, 0, 100, 0.2);
+            box-shadow: 0 0 15px rgba(255, 0, 100, 0.3);
+        }
+
+        /* Enhanced favorite items with galaxy type badges */
+        .galaxy-badge {
+            background: rgba(76, 175, 80, 0.2);
+            color: #4CAF50;
+            padding: 2px 6px;
+            border-radius: 12px;
+            font-size: 9px;
+            display: inline-block;
+            margin-left: 5px;
+        }
+
+        .galaxy-badge.barred {
+            background: rgba(255, 193, 7, 0.2);
+            color: #FFC107;
+        }
+
+        /* Galaxy Analysis Overlay Styles */
+        .galaxy-overlay {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 320px;
+            max-height: 80vh;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(15px);
+            z-index: 50;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            display: none; /* Initially hidden */
+        }
+
+        .galaxy-overlay.visible {
+            display: block;
+        }
+
+        .overlay-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: rgba(76, 175, 80, 0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .overlay-header h4 {
+            margin: 0;
+            color: #4CAF50;
+            font-size: 16px;
+        }
+
+        .overlay-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 3px;
+            transition: background 0.2s;
+        }
+
+        .overlay-close:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .overlay-content {
+            padding: 20px;
+            overflow-y: auto;
+            max-height: calc(80vh - 60px);
+        }
+
+        .analysis-section {
+            margin-bottom: 20px;
+        }
+
+        .analysis-section h5 {
+            color: #64B5F6;
+            margin: 0 0 10px 0;
+            font-size: 14px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 5px;
+        }
+
+        .analysis-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 5px 0;
+            font-size: 12px;
+        }
+
+        .analysis-item span:first-child {
+            color: #ccc;
+        }
+
+        .analysis-item span:last-child {
+            color: #4CAF50;
+            font-weight: 500;
+        }
+
+        /* Camera Control Overlay */
+        .camera-overlay {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            font-size: 12px;
+            transition: opacity 0.3s ease;
+            z-index: 45;
+        }
+
+        .camera-hint {
+            text-align: center;
+            line-height: 1.4;
+        }
+
+        .camera-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* Star Information Overlay - Enhanced with draggable functionality */
+        .star-overlay {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            width: 300px;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(15px);
+            z-index: 50;
+            padding: 20px;
+            display: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+        }
+
+        .star-overlay.visible {
+            display: block;
+        }
+        
+        /* Add a subtle glow effect when dragging */
+        .star-overlay.dragging {
+            box-shadow: 0 0 20px rgba(76, 175, 80, 0.3);
+            border-color: rgba(76, 175, 80, 0.5);
+        }
+
+        .star-overlay h4 {
+            margin: 0 0 15px 0;
+            color: #64B5F6;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .star-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .star-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .star-section {
+            margin-bottom: 15px;
+        }
+
+        .star-section h5 {
+            margin: 0 0 8px 0;
+            color: #4CAF50;
+            font-size: 14px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 4px;
+        }
+
+        .star-property {
+            display: flex;
+            justify-content: space-between;
+            margin: 5px 0;
+            font-size: 12px;
+        }
+
+        .star-property span:first-child {
+            color: #ccc;
+        }
+
+        .star-property span:last-child {
+            color: #4CAF50;
+            font-weight: 500;
+        }
+
+        .star-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .star-controls button {
+            flex: 1;
+            padding: 8px 12px;
+            background: rgba(76, 175, 80, 0.2);
+            border: 1px solid #4CAF50;
+            color: #4CAF50;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+
+        .star-controls button:hover {
+            background: rgba(76, 175, 80, 0.3);
+            transform: translateY(-1px);
+        }
+        
+        /* Drag handle styles */
+        .star-drag-handle {
+            cursor: move;
+            user-select: none;
+        }
+        
+        .star-drag-handle:hover {
+            color: #4CAF50;
+        }
+        
+        /* Connection line animation */
+        @keyframes dash-animation {
+            to {
+                stroke-dashoffset: -8;
+            }
+        }
+        
+        #star-connection-line path {
+            animation: dash-animation 1s linear infinite;
+        }
+
+        /* Enhanced Post-Processing Controls with better visual cues */
+        #post-processing-controls {
+            padding: 10px;
+            background: rgba(33, 33, 55, 0.3);
+            border-radius: 8px;
+            margin-top: 15px;
+            border: 1px solid rgba(100, 181, 246, 0.3);
+        }
+
+        #post-processing-controls button {
+            margin-bottom: 8px;
+            background: rgba(33, 150, 243, 0.4);
+            font-weight: normal;
+        }
+
+        #post-processing-controls button:hover {
+            background: rgba(33, 150, 243, 0.6);
+        }
+
+        /* Highlight buttons when the effect is active */
+        #post-processing-controls button.active {
+            background: rgba(33, 150, 243, 0.8);
+            box-shadow: 0 0 8px rgba(33, 150, 243, 0.5);
+        }
+
+        /* Active effect indicator */
+        .effect-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: #64B5F6;
+            border-radius: 50%;
+            margin-right: 5px;
+            opacity: 0.5;
+        }
+
+        .effect-indicator.active {
+            opacity: 1;
+            box-shadow: 0 0 5px #64B5F6;
+        }
+    </style>
+</head>
+<body>
+    <!-- Enhanced loading overlay -->
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <div id="loading-message">Loading Enhanced Galaxy Generator...</div>
+            <div style="font-size: 12px; color: #888; margin-top: 10px;">
+                Initializing realistic spiral galaxy physics...
+            </div>
+        </div>
+    </div>
+
+    <div id="canvas-container">
+        <!-- UI Toggle Button -->
+        <div id="ui-toggle" onclick="toggleUIPanel()" title="Toggle UI Panel">
+            ⚙️
+        </div>
+
+        <!-- Galaxy Analysis Overlay (NEW) -->
+        <div id="galaxy-analysis-overlay" class="galaxy-overlay" style="display: none;">
+            <div class="overlay-header">
+                <h4>🔬 Galaxy Analysis</h4>
+                <button class="overlay-close" id="analysis-close-btn">×</button>
+            </div>
+            <div class="overlay-content" id="analysis-content">
+                <div class="analysis-section">
+                    <h5>Physical Properties</h5>
+                    <div id="analysis-physics"></div>
+                </div>
+                <div class="analysis-section">
+                    <h5>Stellar Populations</h5>
+                    <div id="analysis-populations"></div>
+                </div>
+                <div class="analysis-section">
+                    <h5>Structure</h5>
+                    <div id="analysis-structure"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Camera Control Instructions (NEW) -->
+        <div id="camera-instructions" class="camera-overlay">
+            <div class="camera-hint">
+                🎥 Mouse: Rotate • Wheel: Zoom • Right-click: Pan
+                <br><small>Auto camera resumes after 3s of inactivity</small>
+            </div>
+        </div>
+
+        <!-- Star Information Overlay (Enhanced with draggable functionality) -->
+        <div id="star-info-overlay" class="star-overlay">
+            <h4>
+                <div class="star-header">
+                    <span class="star-indicator" id="star-color-indicator"></span>
+                    <span id="star-title">Star System</span>
+                </div>
+                <button class="overlay-close" id="star-close-btn">×</button>
+            </h4>
+            
+            <div class="star-section">
+                <h5>Stellar Properties</h5>
+                <div id="star-basic-info"></div>
+            </div>
+            
+            <div class="star-section">
+                <h5>Galactic Position</h5>
+                <div id="star-position-info"></div>
+            </div>
+            
+            <div class="star-section">
+                <h5>Planetary System</h5>
+                <div id="star-planets-info"></div>
+            </div>
+            
+            <div class="star-controls">
+                <button id="random-star-btn">Random Star</button>
+                <button id="track-star-btn">Track Star</button>
+            </div>
+        </div>
+
+        <div id="ui-panel">
+            <h3 style="margin-top: 0; text-align: center; color: #fff; text-shadow: 0 0 10px rgba(255,255,255,0.3);">
+                ✨ Galaxy Generator v2 Enhanced
+            </h3>
+
+            <!-- Galaxy Type Indicator -->
+            <div id="galaxy-type-indicator" class="galaxy-type" style="display: none;">
+                Loading galaxy type...
+            </div>
+            
+            <div class="control-group">
+                <label for="seed-input">Galaxy Seed:</label>
+                <input type="text" id="seed-input" placeholder="Enter seed or leave blank for random">
+                <button onclick="generateGalaxy()">Generate Galaxy</button>
+                <button onclick="randomSeed()">Random Seed</button>
+            </div>
+            
+            <div class="control-group">
+                <label>Current Seed: <span id="current-seed" style="font-weight: bold; color: #4CAF50;">-</span></label>
+                <input type="text" id="favorite-name-input" placeholder="Name this galaxy (optional)" style="margin-bottom: 5px;">
+                <button id="favorite-btn" class="favorite-btn" onclick="toggleFavorite()">
+                    ♡ Add to Favorites
+                </button>
+            </div>
+            
+            <div class="control-group">
+                <label>Rate this galaxy:</label>
+                <div class="rating-container" id="rating-stars">
+                    <span class="star" data-rating="1">★</span>
+                    <span class="star" data-rating="2">★</span>
+                    <span class="star" data-rating="3">★</span>
+                    <span class="star" data-rating="4">★</span>
+                    <span class="star" data-rating="5">★</span>
+                </div>
+            </div>
+            
+            <div class="performance-controls">
+                <h4 style="margin: 0 0 10px 0; color: #fff; font-size: 16px;">Animation Controls</h4>
+                
+                <div class="slider-container">
+                    <label style="margin: 0; min-width: 100px; font-size: 12px;">Speed:</label>
+                    <input type="range" id="speed-slider" min="0" max="3" step="0.1" value="0.6">
+                    <span class="slider-value" id="speed-value">0.6</span>
+                </div>
+                
+                <div class="slider-container">
+                    <label style="margin: 0; min-width: 100px; font-size: 12px;">Zoom:</label>
+                    <input type="range" id="zoom-slider" min="20" max="200" step="5" value="60">
+                    <span class="slider-value" id="zoom-value">60</span>
+                </div>
+                
+                <div class="slider-container">
+                    <label style="margin: 0; min-width: 100px; font-size: 12px;">Glow:</label>
+                    <input type="range" id="glow-slider" min="0.5" max="3.0" step="0.1" value="0.6">
+                    <span class="slider-value" id="glow-value">0.6</span>
+                </div>
+                
+                <button onclick="togglePause()">⏯️ Toggle Animation</button>
+            </div>
+
+            <div class="effects-controls">
+                <h4 style="margin: 0 0 10px 0; color: #fff; font-size: 16px;">Black Hole Physics</h4>
+
+                <div class="blackhole-indicator" id="blackhole-indicator">
+                    <div style="font-size: 11px; color: #888;">Black hole effects active</div>
+                </div>
+
+                <button onclick="toggleBlackHoleEffects()">🕳️ Toggle Black Holes</button>
+                
+                <div class="slider-container">
+                    <label style="margin: 0; min-width: 80px; font-size: 12px;">Gravity:</label>
+                    <input type="range" id="gravity-slider" min="0" max="5" step="0.1" value="1">
+                    <span class="slider-value" id="gravity-value">1.0</span>
+                </div>
+                
+                <div class="slider-container">
+                    <label style="margin: 0; min-width: 80px; font-size: 12px;">Influence:</label>
+                    <input type="range" id="influence-slider" min="5" max="50" step="1" value="15">
+                    <span class="slider-value" id="influence-value">15.0</span>
+                </div>
+            </div>
+            
+            <!-- Simplified Post-Processing Controls (removed DOF) -->
+            <div id="post-processing-controls">
+                <h4 style="margin: 10px 0 10px 0; color: #fff; font-size: 16px;">Post-Processing Effects</h4>
+                
+                <button id="toggle-pp-btn" onclick="togglePostProcessing()">
+                    <span class="effect-indicator"></span> Toggle Post-Processing
+                </button>
+                
+                <button id="toggle-afterimage-btn" onclick="toggleAfterimage()">
+                    <span class="effect-indicator"></span> Toggle Afterimage
+                </button>
+                
+                <div class="slider-container">
+                    <label style="margin: 0; min-width: 80px; font-size: 12px;">Afterimage:</label>
+                    <input type="range" id="afterimage-slider" min="0.8" max="0.99" step="0.01" value="0.85">
+                    <span class="slider-value" id="afterimage-value">0.85</span>
+                </div>
+            </div>
+
+            <div class="screenshot-controls" style="border-top: 1px solid rgba(255, 255, 255, 0.2); padding-top: 15px; margin-top: 15px;">
+                <h4 style="margin: 0 0 10px 0; color: #fff; font-size: 16px;">Screenshot Tools</h4>
+                
+                <button id="screenshot-btn" onclick="captureScreenshot()" style="background: rgba(76, 175, 80, 0.3); margin-bottom: 8px;">
+                    <span class="effect-indicator active"></span> 📷 Take Screenshot
+                </button>
+                
+                <button id="hires-screenshot-btn" onclick="captureHighResScreenshot()" style="background: rgba(76, 175, 80, 0.3); margin-bottom: 8px;">
+                    <span class="effect-indicator active"></span> 📷 High-Res (2x)
+                </button>
+                
+                <div style="font-size: 11px; margin-top: 5px; text-align: center; color: #aaa;">
+                    Keyboard: Shift+S (Screenshot), Ctrl+Shift+S (High-Res)
+                </div>
+            </div>
+            
+            <div id="galaxy-metadata" class="metadata" style="display: none;">
+                <h5 style="margin: 0 0 8px 0; color: #4CAF50;">Galaxy Information</h5>
+                <div class="metadata-item">
+                    <span>Type:</span>
+                    <span id="meta-theme">-</span>
+                </div>
+                <div class="metadata-item">
+                    <span>Spiral Arms:</span>
+                    <span id="meta-arms">-</span>
+                </div>
+                <div class="metadata-item">
+                    <span>Stars:</span>
+                    <span id="meta-particles">-</span>
+                </div>
+                <div class="metadata-item">
+                    <span>Black Holes:</span>
+                    <span id="meta-blackholes">-</span>
+                </div>
+                <div class="metadata-item">
+                    <span>Radius:</span>
+                    <span id="meta-radius">-</span>
+                </div>
+                <!-- Additional enhanced metadata will be added dynamically -->
+            </div>
+
+            <div class="shortcuts">
+                <h5>Keyboard Shortcuts</h5>
+                <div class="shortcut-item">
+                    <span>Toggle UI</span>
+                    <span class="key">Space</span>
+                </div>
+                <div class="shortcut-item">
+                    <span>Pause/Play</span>
+                    <span class="key">P</span>
+                </div>
+                <div class="shortcut-item">
+                    <span>Random Galaxy</span>
+                    <span class="key">R</span>
+                </div>
+                <div class="shortcut-item">
+                    <span>Toggle Black Holes</span>
+                    <span class="key">B</span>
+                </div>
+                <div class="shortcut-item">
+                    <span>Galaxy Analysis</span>
+                    <span class="key">G</span>
+                </div>
+                <div class="shortcut-item">
+                    <span>Random Star</span>
+                    <span class="key">S</span>
+                </div>
+                <div class="shortcut-item">
+                    <span>Track Star</span>
+                    <span class="key">T</span>
+                </div>
+                <div class="shortcut-item">
+                    <span>Camera Pattern</span>
+                    <span class="key">V</span>
+                </div>
+                <div class="shortcut-item">
+                    <span>Take Screenshot</span>
+                    <span class="key">Shift+C</span>
+                </div>
+                <div class="shortcut-item">
+                    <span>High-Res Screenshot</span>
+                    <span class="key">Ctrl+Shift+C</span>
+                </div>
+                <div class="shortcut-item">
+                    <span>Help</span>
+                    <span class="key">H</span>
+                </div>
+            </div>
+            
+            <div id="favorites-list">
+                <h4 style="color: #fff; margin-bottom: 10px;">✨ Favorites</h4>
+                <div id="favorites-container"></div>
+            </div>
+            
+            <div class="status" id="status">Ready to explore realistic galaxy formation...</div>
+            
+            <div id="performance-stats" class="metadata" style="font-size: 11px; margin-top: 10px;">
+                <h5 style="margin: 0 0 8px 0; color: #4CAF50;">Performance</h5>
+                <div>Loading enhanced metrics...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add script to update effect indicator buttons -->
+    <script>
+    // Function to update effect indicator status
+    function updateEffectIndicators() {
+        // Update when post-processing state changes
+        if (typeof window.togglePostProcessing !== 'undefined') {
+            try {
+                const settings = window._getPostProcessingState ? window._getPostProcessingState() : null;
+                if (settings) {
+                    // Update main post-processing indicator
+                    const togglePPBtn = document.getElementById('toggle-pp-btn');
+                    if (togglePPBtn) {
+                        const indicator = togglePPBtn.querySelector('.effect-indicator');
+                        if (indicator) {
+                            indicator.classList.toggle('active', settings.enabled);
+                        }
+                        togglePPBtn.classList.toggle('active', settings.enabled);
+                    }
+                    
+                    // Update afterimage indicator
+                    const toggleAfterimageBtn = document.getElementById('toggle-afterimage-btn');
+                    if (toggleAfterimageBtn) {
+                        const indicator = toggleAfterimageBtn.querySelector('.effect-indicator');
+                        if (indicator) {
+                            indicator.classList.toggle('active', settings.afterimageEnabled);
+                        }
+                        toggleAfterimageBtn.classList.toggle('active', settings.afterimageEnabled);
+                    }
+                }
+            } catch (e) {
+                console.warn('Error updating effect indicators:', e);
+            }
+        }
+    }
+    
+    // Update indicators when state changes
+    window.addEventListener('post-processing-state-changed', updateEffectIndicators);
+    
+    // Update indicators when window loads
+    window.addEventListener('load', function() {
+        // Initial update after 2 seconds to give time for state to initialize
+        setTimeout(updateEffectIndicators, 2000);
+        
+        // Set up interval to update status periodically
+        setInterval(updateEffectIndicators, 2000);
+    });
+    </script>
+
+    <!-- Main application entry point using ES modules with import map -->
+    <script type="module" src="./js/app.js"></script>
+</body>
+</html>

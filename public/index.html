@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Experiment Browser</title>
+    <!-- Bulma CSS Framework -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Marked.js for Markdown rendering -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js"></script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="main.css">
+    <link rel="stylesheet" href="experiments.css">
+    <link rel="stylesheet" href="modals.css">
+    <link rel="stylesheet" href="workflow-progress.css">
+    <link rel="stylesheet" href="console-manager.css">
+    <link rel="stylesheet" href="utilities.css">
+    <link rel="stylesheet" href="console.css">
+    <link rel="stylesheet" href="services.css">
+    <style>
+        /* Add styles for running services indicator */
+        #runningServicesIndicator {
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            margin-left: 5px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(241, 70, 104, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 5px rgba(241, 70, 104, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(241, 70, 104, 0);
+            }
+        }
+        
+        /* Highlight running services in the service list and page */
+        .experiment-item.is-running {
+            border-left: 3px solid #48c774;
+            background-color: #f0fff4;
+        }
+        
+        .service-running-card {
+            border-left: 3px solid #48c774 !important;
+            background-color: #f0fff4;
+        }
+        
+        /* Optional Workflows section styling */
+        .optional-workflows {
+            background: linear-gradient(135deg, #f0f8ff 0%, #e6f2ff 100%);
+            border: 1px solid #3273dc;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .optional-workflows::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #3273dc, #3298dc);
+        }
+        
+        .optional-workflows .title {
+            color: #1a5bb5 !important;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem !important;
+            font-weight: 700;
+        }
+        
+        .optional-workflows .help {
+            color: #366bb5;
+            font-style: italic;
+            background-color: rgba(255, 255, 255, 0.6);
+            padding: 0.75rem;
+            border-radius: 6px;
+            border-left: 3px solid #3273dc;
+            margin-bottom: 1rem;
+        }
+        
+        /* Open in New Window button styling */
+        #loadExperimentNewWindowBtn {
+            background-color: #209cee;
+            border-color: transparent;
+            color: #fff;
+            transition: all 0.3s ease;
+        }
+
+        #loadExperimentNewWindowBtn:hover {
+            background-color: #108de0;
+            box-shadow: 0 2px 8px rgba(32, 156, 238, 0.3);
+            transform: translateY(-1px);
+        }
+
+        #loadExperimentNewWindowBtn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            background-color: #f5f5f5 !important;
+            color: #999 !important;
+            border-color: #ddd !important;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* Responsive adjustments for action buttons */
+        @media screen and (max-width: 768px) {
+            .action-buttons {
+                flex-direction: column;
+                width: 100%;
+            }
+            
+            .action-buttons .control {
+                width: 100%;
+                margin-bottom: 0.5rem;
+            }
+            
+            .action-buttons .button {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar is-dark" role="navigation">
+        <div class="navbar-brand">
+            <a class="navbar-item" href="#">
+                <i class="fas fa-flask"></i>
+                <strong>&nbsp;Experiment Browser</strong>
+            </a>
+        </div>
+        <div class="navbar-menu">
+            <div class="navbar-start">
+                <div class="navbar-item">
+                    <button class="button is-light" id="sidebarToggle" onclick="toggleSidebar()">
+                        <i class="fas fa-bars"></i>
+                        <span>Toggle Sidebar</span>
+                    </button>
+                </div>
+                <div class="navbar-item">
+                    <button class="button is-info" onclick="toggleConsoleManager()">
+                        <i class="fas fa-terminal"></i>
+                        <span>Console Manager</span>
+                        <span class="tag is-small is-light" id="consoleCount">0</span>
+                    </button>
+                </div>
+            </div>
+            <div class="navbar-end">
+                <div class="navbar-item">
+                    <div class="buttons">
+                        <button class="button is-info" onclick="switchToPage('experiments')" id="navExperiments">
+                            <i class="fas fa-flask"></i>
+                            <span>Experiments</span>
+                        </button>
+                        <button class="button is-light" onclick="switchToPage('workflows')" id="navWorkflows">
+                            <i class="fas fa-project-diagram"></i>
+                            <span>Workflows</span>
+                        </button>
+                        <button class="button is-light" onclick="switchToPage('services')" id="navServices">
+                            <i class="fas fa-server"></i>
+                            <span>Services</span>
+                            <span class="tag is-light" id="runningServicesIndicator" style="display: none;">0</span>
+                        </button>
+                        <button class="button is-light" onclick="switchToPage('commands')" id="navCommands">
+                            <i class="fas fa-terminal"></i>
+                            <span>Commands</span>
+                        </button>
+                        <button class="button is-light" onclick="refreshAll()">
+                            <i class="fas fa-refresh"></i>
+                            <span>Refresh</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <div class="layout-columns">
+            <!-- Sidebar for navigation and lists -->
+            <div class="sidebar-column" id="sidebarColumn">
+                <div class="sidebar">
+                    <div class="sidebar-content">
+                        <!-- Experiments sidebar - shown when in experiments page -->
+                        <div id="experimentsSidebar" class="sidebar-section">
+                            <h2 class="title is-4">
+                                <i class="fas fa-list"></i>
+                                Experiments
+                            </h2>
+                            
+                            <!-- Search/Filter -->
+                            <div class="field" id="searchField">
+                                <div class="control has-icons-left">
+                                    <input class="input is-small" type="text" placeholder="Search experiments..." id="searchInput">
+                                    <span class="icon is-small is-left">
+                                        <i class="fas fa-search"></i>
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <!-- Experiment List -->
+                            <div id="experimentList" class="experiment-list">
+                                <div class="has-text-centered">
+                                    <i class="fas fa-spinner fa-spin"></i>
+                                    <p>Loading experiments...</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Services sidebar - shown when in services page -->
+                        <div id="servicesSidebar" class="sidebar-section" style="display: none;">
+                            <h2 class="title is-4">
+                                <i class="fas fa-server"></i>
+                                Services
+                            </h2>
+                            
+                            <div class="field">
+                                <div class="control has-icons-left">
+                                    <input class="input is-small" type="text" placeholder="Search services..." id="servicesSearch">
+                                    <span class="icon is-small is-left">
+                                        <i class="fas fa-search"></i>
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <div id="servicesList" class="services-list">
+                                <div class="has-text-centered">
+                                    <i class="fas fa-spinner fa-spin"></i>
+                                    <p>Loading services...</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Commands sidebar - shown when in commands page -->
+                        <div id="commandsSidebar" class="sidebar-section" style="display: none;">
+                            <h2 class="title is-4">
+                                <i class="fas fa-terminal"></i>
+                                Commands
+                            </h2>
+                            
+                            <div class="field">
+                                <div class="control has-icons-left">
+                                    <input class="input is-small" type="text" placeholder="Search commands..." id="commandsSearch">
+                                    <span class="icon is-small is-left">
+                                        <i class="fas fa-search"></i>
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <div id="commandsList" class="commands-list">
+                                <div class="has-text-centered">
+                                    <i class="fas fa-spinner fa-spin"></i>
+                                    <p>Loading commands...</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Workflows sidebar - shown when in workflows page -->
+                        <div id="workflowsSidebar" class="sidebar-section" style="display: none;">
+                            <h2 class="title is-4">
+                                <i class="fas fa-project-diagram"></i>
+                                Workflows
+                            </h2>
+                            
+                            <div class="field">
+                                <div class="control has-icons-left">
+                                    <input class="input is-small" type="text" placeholder="Search workflows..." id="workflowsSearch">
+                                    <span class="icon is-small is-left">
+                                        <i class="fas fa-search"></i>
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <div id="workflowsList" class="workflows-list">
+                                <div class="has-text-centered">
+                                    <i class="fas fa-spinner fa-spin"></i>
+                                    <p>Loading workflows...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main content area -->
+            <div class="content-column" id="contentColumn">
+                <!-- Experiments page -->
+                <div id="experimentsPage" class="page-content">
+                    <!-- Selected experiment details -->
+                    <div id="experimentDetails" class="content-box" style="display: none;">
+                        <div class="level">
+                            <div class="level-left">
+                                <div class="level-item">
+                                    <div>
+                                        <h1 class="title is-3" id="experimentTitle">Select an Experiment</h1>
+                                        <p class="subtitle" id="experimentDescription"></p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="level-right">
+                                <div class="level-item">
+                                    <div id="experimentRating"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tags -->
+                        <div id="experimentTags" class="tags"></div>
+
+                        <!-- Required Workflows -->
+                        <div id="requiredWorkflows" class="required-workflows" style="display: none;">
+                            <h4 class="title is-5">Required Workflows</h4>
+                            <p class="help">These workflows must be run before loading the experiment.</p>
+                            <div id="requiredWorkflowButtons" class="workflow-buttons-container"></div>
+                        </div>
+                        
+                        <!-- Optional Workflows -->
+                        <div id="optionalWorkflows" class="optional-workflows" style="display: none;">
+                            <h4 class="title is-5">Optional Workflows</h4>
+                            <p class="help">These workflows can enhance the experiment but are not required.</p>
+                            <div id="optionalWorkflowButtons" class="workflow-buttons-container"></div>
+                        </div>
+
+                        <!-- Dependencies (Services and Optional Workflows) -->
+                        <div id="serviceControls" class="service-controls" style="display: none;">
+                            <h4 class="title is-5">Dependencies</h4>
+                            <p class="help">Services and optional workflows for this experiment.</p>
+                            <div id="serviceButtons" class="service-buttons-container"></div>
+                        </div>
+
+                        <!-- Documentation -->
+                        <div id="documentationSection" class="documentation-section" style="display: none;">
+                            <h4 class="title is-5">Documentation</h4>
+                            <div id="documentationButtons" class="documentation-buttons"></div>
+                        </div>
+
+                        <!-- Action buttons -->
+                        <div class="field is-grouped action-buttons">
+                            <div class="control">
+                                <button class="button is-primary is-medium" id="runRequiredBtn" onclick="runRequiredWorkflows()" style="display: none;">
+                                    <i class="fas fa-play-circle"></i>
+                                    <span>Run All Required Workflows</span>
+                                </button>
+                            </div>
+                            <div class="control">
+                                <button class="button is-primary is-medium" id="loadExperimentBtn" onclick="loadExperiment()">
+                                    <i class="fas fa-play"></i>
+                                    <span>Load Experiment</span>
+                                </button>
+                            </div>
+                            <div class="control">
+                                <button class="button is-info is-medium" id="loadExperimentNewWindowBtn" onclick="loadExperimentInNewWindow()">
+                                    <i class="fas fa-external-link-alt"></i>
+                                    <span>Open in New Window</span>
+                                </button>
+                            </div>
+                            <div class="control">
+                                <button class="button is-light is-medium" onclick="editExperiment()">
+                                    <i class="fas fa-edit"></i>
+                                    <span>Edit Metadata</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Experiment iframe container -->
+                    <div id="experimentFrame" class="experiment-frame" style="display: none;">
+                        <div class="frame-header">
+                            <div class="level">
+                                <div class="level-left">
+                                    <div class="level-item">
+                                        <h3 class="title is-4" id="frameTitle">Running Experiment</h3>
+                                    </div>
+                                </div>
+                                <div class="level-right">
+                                    <div class="level-item">
+                                        <button class="button is-light fullscreen-btn" onclick="toggleExperimentFullscreen()" title="Toggle Fullscreen">
+                                            <i class="fas fa-expand"></i>
+                                            <span>Expand</span>
+                                        </button>
+                                        <button class="button is-light" onclick="closeExperiment()">
+                                            <i class="fas fa-times"></i>
+                                            <span>Close</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <iframe id="experimentIframe" src="" frameborder="0"></iframe>
+                    </div>
+
+                    <!-- Default state -->
+                    <div id="defaultState" class="content-box has-text-centered">
+                        <i class="fas fa-arrow-left has-text-grey-light" style="font-size: 3rem;"></i>
+                        <h3 class="title is-4 has-text-grey-light">Select an experiment from the sidebar</h3>
+                        <p class="has-text-grey">Choose an experiment to view its details and run it.</p>
+                        <div style="margin-top: 2rem;">
+                            <button class="button is-info" onclick="ExperimentManager.showProjectReadme()">
+                                <i class="fas fa-book"></i>
+                                <span>View Project Readme</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Services page -->
+                <div id="servicesPage" class="page-content" style="display: none;">
+                    <div class="page-header">
+                        <div class="level">
+                            <div class="level-left">
+                                <div class="level-item">
+                                    <div>
+                                        <h1 class="title is-3">Services</h1>
+                                        <p class="subtitle">Manage long-running development services</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="level-right">
+                                <div class="level-item">
+                                    <div class="field is-grouped">
+                                        <div class="control">
+                                            <button class="button is-primary" onclick="createService()">
+                                                <i class="fas fa-plus"></i>
+                                                <span>New Service</span>
+                                            </button>
+                                        </div>
+                                        <div class="control">
+                                            <button class="button is-info" onclick="refreshServices()">
+                                                <i class="fas fa-refresh"></i>
+                                                <span>Refresh</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Service Stats -->
+                        <div class="level">
+                            <div class="level-item has-text-centered">
+                                <div>
+                                    <p class="heading">Total Services</p>
+                                    <p class="title is-5" id="totalServicesCount">0</p>
+                                </div>
+                            </div>
+                            <div class="level-item has-text-centered">
+                                <div>
+                                    <p class="heading">Running Services</p>
+                                    <p class="title is-5" id="runningServicesCount">0</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="page-body">
+                        <div id="servicesContainer" class="services-container">
+                            <div class="has-text-centered">
+                                <i class="fas fa-spinner fa-spin"></i>
+                                <p>Loading services...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Commands page -->
+                <div id="commandsPage" class="page-content" style="display: none;">
+                    <div class="page-header">
+                        <div class="level">
+                            <div class="level-left">
+                                <div class="level-item">
+                                    <div>
+                                        <h1 class="title is-3">Commands</h1>
+                                        <p class="subtitle">Manage one-time executable commands</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="level-right">
+                                <div class="level-item">
+                                    <div class="field is-grouped">
+                                        <div class="control">
+                                            <button class="button is-primary" onclick="createCommand()">
+                                                <i class="fas fa-plus"></i>
+                                                <span>New Command</span>
+                                            </button>
+                                        </div>
+                                        <div class="control">
+                                            <button class="button is-info" onclick="refreshCommands()">
+                                                <i class="fas fa-refresh"></i>
+                                                <span>Refresh</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Command Stats -->
+                        <div class="level">
+                            <div class="level-item has-text-centered">
+                                <div>
+                                    <p class="heading">Total Commands</p>
+                                    <p class="title is-5" id="totalCommandsCount">0</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="page-body">
+                        <div id="commandsContainer" class="commands-container">
+                            <div class="has-text-centered">
+                                <i class="fas fa-spinner fa-spin"></i>
+                                <p>Loading commands...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Workflows page -->
+                <div id="workflowsPage" class="page-content" style="display: none;">
+                    <div class="page-header">
+                        <div class="level">
+                            <div class="level-left">
+                                <div class="level-item">
+                                    <div>
+                                        <h1 class="title is-3">Workflows</h1>
+                                        <p class="subtitle">Manage multi-step automated workflows</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="level-right">
+                                <div class="level-item">
+                                    <div class="field is-grouped">
+                                        <div class="control">
+                                            <button class="button is-primary" onclick="createWorkflow()">
+                                                <i class="fas fa-plus"></i>
+                                                <span>New Workflow</span>
+                                            </button>
+                                        </div>
+                                        <div class="control">
+                                            <button class="button is-info" onclick="refreshWorkflows()">
+                                                <i class="fas fa-refresh"></i>
+                                                <span>Refresh</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Workflow Stats -->
+                        <div class="level">
+                            <div class="level-item has-text-centered">
+                                <div>
+                                    <p class="heading">Total Workflows</p>
+                                    <p class="title is-5" id="totalWorkflowsCount">0</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="page-body">
+                        <div id="workflowsContainer" class="workflows-container">
+                            <div class="has-text-centered">
+                                <i class="fas fa-spinner fa-spin"></i>
+                                <p>Loading workflows...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Console Manager Overlay -->
+    <div id="consoleManagerOverlay" class="console-manager-overlay" style="display: none;">
+        <div class="console-manager-content">
+            <div class="console-manager-header">
+                <h5 class="title is-5">
+                    <i class="fas fa-terminal"></i>
+                    Console Manager
+                </h5>
+                <button class="button is-small" onclick="toggleConsoleManager()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div id="consoleManagerBody" class="console-manager-body">
+                <div class="has-text-centered has-text-grey">
+                    <p>No active consoles</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Documentation Modal -->
+    <div class="modal" id="documentationModal">
+        <div class="modal-background" onclick="closeDocumentationModal()"></div>
+        <div class="modal-card">
+            <header class="modal-card-head">
+                <p class="modal-card-title" id="documentationTitle">Documentation</p>
+                <button class="delete" onclick="closeDocumentationModal()"></button>
+            </header>
+            <section class="modal-card-body">
+                <div id="documentationContent" class="content">
+                    <!-- Documentation content will be loaded here -->
+                </div>
+            </section>
+            <footer class="modal-card-foot">
+                <button class="button" onclick="closeDocumentationModal()">Close</button>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Loading modal -->
+    <div class="modal" id="loadingModal">
+        <div class="modal-background"></div>
+        <div class="modal-content">
+            <div class="box has-text-centered">
+                <i class="fas fa-spinner fa-spin" style="font-size: 2rem;"></i>
+                <p class="title is-5">Processing...</p>
+                <p id="loadingMessage">Please wait...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Experiment Metadata Modal -->
+    <div class="modal" id="editModal">
+        <div class="modal-background" onclick="closeEditModal()"></div>
+        <div class="modal-card">
+            <header class="modal-card-head">
+                <p class="modal-card-title">Edit Experiment Metadata</p>
+                <button class="delete" onclick="closeEditModal()"></button>
+            </header>
+            <section class="modal-card-body">
+                <form id="editForm">
+                    <div class="field">
+                        <label class="label">Experiment Name</label>
+                        <div class="control">
+                            <input class="input" type="text" id="editName" required>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label class="label">Description</label>
+                        <div class="control">
+                            <textarea class="textarea" id="editDescription" placeholder="Describe what this experiment does..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label class="label">Rating</label>
+                        <div class="control rating-input">
+                            <input type="range" id="editRating" min="0" max="5" value="0" onInput="updateRatingDisplay()">
+                            <div class="rating-display" id="editRatingDisplay"></div>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label class="label">Tags</label>
+                        <div class="control">
+                            <div class="tags-input" id="tagsInput" onclick="focusTagInput()">
+                                <input type="text" class="tag-input" id="tagInput" placeholder="Add tags..." onkeydown="handleTagInput(event)">
+                            </div>
+                            <p class="help">Press Enter to add a tag</p>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label class="label">Required Workflows</label>
+                        <div class="control">
+                            <div class="workflow-selection-container">
+                                <div class="selected-workflows" id="selectedWorkflows">
+                                    <!-- Selected workflows will appear here as tags -->
+                                </div>
+                                <div class="field has-addons">
+                                    <div class="control is-expanded">
+                                        <div class="select is-fullwidth">
+                                            <select id="workflowSelector">
+                                                <option value="">Select a workflow to add...</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="control">
+                                        <button type="button" class="button is-primary" onclick="addSelectedWorkflow()">
+                                            <i class="fas fa-plus"></i>
+                                            <span>Add</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="help">Workflows that must run before loading the experiment</p>
+                        </div>
+                    </div>
+                    
+                    <div class="field">
+                        <label class="label">Optional Workflows</label>
+                        <div class="control">
+                            <div class="workflow-selection-container">
+                                <div class="selected-workflows" id="selectedOptionalWorkflows">
+                                    <!-- Selected optional workflows will appear here as tags -->
+                                </div>
+                                <div class="field has-addons">
+                                    <div class="control is-expanded">
+                                        <div class="select is-fullwidth">
+                                            <select id="optionalWorkflowSelector">
+                                                <option value="">Select a workflow to add...</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="control">
+                                        <button type="button" class="button is-info" onclick="addSelectedOptionalWorkflow()">
+                                            <i class="fas fa-plus"></i>
+                                            <span>Add</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="help">Workflows that are helpful but not required for the experiment</p>
+                        </div>
+                    </div>
+                </form>
+            </section>
+            <footer class="modal-card-foot">
+                <button class="button is-success" onclick="saveMetadata()">Save Changes</button>
+                <button class="button" onclick="closeEditModal()">Cancel</button>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Create/Edit Service Modal -->
+    <div class="modal" id="serviceModal">
+        <div class="modal-background" onclick="closeServiceModal()"></div>
+        <div class="modal-card">
+            <header class="modal-card-head">
+                <p class="modal-card-title" id="serviceModalTitle">Create Service</p>
+                <button class="delete" onclick="closeServiceModal()"></button>
+            </header>
+            <section class="modal-card-body">
+                <form id="serviceForm">
+                    <div class="field">
+                        <label class="label">Service ID</label>
+                        <div class="control">
+                            <input class="input" type="text" id="serviceId" required>
+                        </div>
+                        <p class="help">Unique identifier for the service (e.g., backend-api)</p>
+                    </div>
+
+                    <div class="field">
+                        <label class="label">Service Name</label>
+                        <div class="control">
+                            <input class="input" type="text" id="serviceName" required>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label class="label">Description</label>
+                        <div class="control">
+                            <textarea class="textarea" id="serviceDescription" placeholder="Describe what this service does..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label class="label">Working Directory</label>
+                        <div class="control">
+                            <input class="input" type="text" id="serviceWorkingDir" placeholder="./path/to/service">
+                        </div>
+                        <p class="help">Path relative to the experiment browser directory</p>
+                    </div>
+
+                    <div class="field">
+                        <label class="label">Command</label>
+                        <div class="control">
+                            <input class="input" type="text" id="serviceCommand" required placeholder="npm start">
+                        </div>
+                        <p class="help">Command to run the service</p>
+                    </div>
+                </form>
+            </section>
+            <footer class="modal-card-foot">
+                <button class="button is-success" onclick="saveService()">Save Service</button>
+                <button class="button" onclick="closeServiceModal()">Cancel</button>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Create/Edit Workflow Modal -->
+    <div class="modal" id="workflowModal">
+        <div class="modal-background" onclick="closeWorkflowModal()"></div>
+        <div class="modal-card">
+            <header class="modal-card-head">
+                <p class="modal-card-title" id="workflowModalTitle">Create Workflow</p>
+                <button class="delete" onclick="closeWorkflowModal()"></button>
+            </header>
+            <section class="modal-card-body">
+                <form id="workflowForm">
+                    <div class="field">
+                        <label class="label">Workflow ID</label>
+                        <div class="control">
+                            <input class="input" type="text" id="workflowId" required>
+                        </div>
+                        <p class="help">Unique identifier for the workflow (e.g., dev-setup)</p>
+                    </div>
+
+                    <div class="field">
+                        <label class="label">Workflow Name</label>
+                        <div class="control">
+                            <input class="input" type="text" id="workflowName" required>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label class="label">Description</label>
+                        <div class="control">
+                            <textarea class="textarea" id="workflowDescription" placeholder="Describe what this workflow does..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label class="label">Working Directory</label>
+                        <div class="control">
+                            <input class="input" type="text" id="workflowWorkingDir" placeholder="./project-root">
+                        </div>
+                        <p class="help">Default working directory for steps (can be overridden per step)</p>
+                    </div>
+
+                    <div class="field">
+                        <label class="label">Steps</label>
+                        <div id="workflowSteps" class="workflow-steps">
+                            <div class="has-text-centered">
+                                <button type="button" class="button is-primary" onclick="addWorkflowStep()">
+                                    <i class="fas fa-plus"></i>
+                                    <span>Add First Step</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </section>
+            <footer class="modal-card-foot">
+                <button class="button is-success" onclick="saveWorkflow()">Save Workflow</button>
+                <button class="button" onclick="closeWorkflowModal()">Cancel</button>
+            </footer>
+        </div>
+    </div>
+
+    <!-- JavaScript Modules - Load in dependency order -->
+    <script src="api-utils.js"></script>
+    <script src="ui-utils.js"></script>
+    <script src="console.js"></script>
+    <script src="experiments.js"></script>
+    <script src="services.js"></script>
+    <script src="commands.js"></script>
+    <script src="workflows.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
