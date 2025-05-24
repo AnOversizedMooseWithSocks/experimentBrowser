@@ -1,0 +1,301 @@
+/* Main body and container styles */
+body {
+    margin: 0;
+    padding: 20px;
+    background: #0a0a0a;
+    color: #ffffff;
+    font-family: 'Courier New', monospace;
+    overflow: hidden;
+}
+
+#container {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+}
+
+/* Canvas styles */
+#canvas {
+    border: 2px solid #333;
+    background: linear-gradient(45deg, #1a1a2e, #16213e);
+    cursor: crosshair;
+}
+
+/* Control panel styles */
+#controls {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #444;
+    z-index: 100;
+    min-width: 320px;
+    max-width: 360px;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+}
+
+#controls h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    color: #4CAF50;
+}
+
+/* Scrollable controls container */
+.controls-scroll {
+    overflow-y: auto;
+    overflow-x: hidden;
+    flex: 1;
+    padding-right: 10px;
+}
+
+/* Custom scrollbar for controls */
+.controls-scroll::-webkit-scrollbar {
+    width: 8px;
+}
+
+.controls-scroll::-webkit-scrollbar-track {
+    background: #1a1a1a;
+    border-radius: 4px;
+}
+
+.controls-scroll::-webkit-scrollbar-thumb {
+    background: #444;
+    border-radius: 4px;
+}
+
+.controls-scroll::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* Accordion styles */
+.accordion-header {
+    background: #2a4d3a;
+    color: #fff;
+    padding: 10px 15px;
+    margin: 5px 0;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 13px;
+    transition: background-color 0.2s;
+    position: relative;
+}
+
+.accordion-header:hover {
+    background: #3a5d4a;
+}
+
+.accordion-header::after {
+    content: '▶';
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    transition: transform 0.3s;
+}
+
+.accordion-header.active::after {
+    transform: translateY(-50%) rotate(90deg);
+}
+
+.accordion-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 0 0 4px 4px;
+    margin-top: -5px;
+    margin-bottom: 5px;
+}
+
+.accordion-content.active {
+    padding: 10px;
+}
+
+/* Control group styles */
+.control-group {
+    margin-bottom: 10px;
+}
+
+.control-group button {
+    display: inline-block;
+    margin-bottom: 5px;
+}
+
+label {
+    display: inline-block;
+    width: 140px;
+    font-size: 12px;
+}
+
+/* Select dropdown styles */
+select {
+    background: #333;
+    color: #fff;
+    border: 1px solid #555;
+    padding: 3px 5px;
+    border-radius: 3px;
+    font-size: 11px;
+    cursor: pointer;
+    width: 120px;
+}
+
+select:hover {
+    background: #444;
+    border-color: #666;
+}
+
+select:focus {
+    outline: none;
+    border-color: #4CAF50;
+}
+
+/* Checkbox label styles */
+.control-group label input[type="checkbox"] {
+    margin-right: 5px;
+    vertical-align: middle;
+}
+
+/* Input styles */
+input[type="range"] {
+    width: 100px;
+    margin: 0 10px;
+}
+
+input[type="number"] {
+    width: 60px;
+    background: #333;
+    color: #fff;
+    border: 1px solid #555;
+    padding: 2px;
+    border-radius: 3px;
+}
+
+input[type="checkbox"] {
+    accent-color: #4CAF50;
+    cursor: pointer;
+}
+
+/* Button styles */
+button {
+    background: #2a4d3a;
+    color: #fff;
+    border: none;
+    padding: 8px 12px;
+    margin: 5px 2px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: background-color 0.2s;
+    min-width: 80px;
+}
+
+button:hover {
+    background: #3a5d4a;
+}
+
+button:active {
+    background: #1a3d2a;
+}
+
+button#toggleFieldPoints {
+    background: #3d4a5d;
+}
+
+button#toggleFieldPoints:hover {
+    background: #4d5a6d;
+}
+
+button#toggleBandVisibility {
+    background: #5d3d4a;
+}
+
+button#toggleBandVisibility:hover {
+    background: #6d4d5a;
+}
+
+/* Info panel styles */
+#info {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #444;
+    font-size: 11px;
+    line-height: 1.4;
+    max-width: 320px;
+}
+
+#info div {
+    margin: 2px 0;
+}
+
+#info strong {
+    color: #4CAF50;
+}
+
+.stats {
+    color: #aaa;
+    margin-top: 10px;
+}
+
+.stats div {
+    margin: 3px 0;
+}
+
+/* Interaction rules styles */
+.interaction-rules {
+    margin-top: 10px;
+}
+
+.interaction-rules h4 {
+    margin: 0 0 10px 0;
+    color: #4CAF50;
+    font-size: 13px;
+}
+
+.rule {
+    margin: 5px 0;
+    display: flex;
+    align-items: center;
+    font-size: 11px;
+}
+
+.rule label {
+    font-size: 11px;
+    width: 110px;
+}
+
+.rule select {
+    width: 80px;
+}
+
+/* Harmonize behavior select */
+#harmonizeBehavior {
+    width: 150px;
+}
+
+/* Responsive adjustments */
+@media (max-height: 700px) {
+    #controls {
+        max-height: 70vh;
+    }
+    
+    .control-group {
+        margin-bottom: 8px;
+    }
+    
+    .accordion-header {
+        padding: 8px 12px;
+    }
+    
+    .accordion-content.active {
+        padding: 8px;
+    }
+}

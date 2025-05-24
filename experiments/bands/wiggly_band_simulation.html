@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wiggly Band Physics Simulation</title>
+    
+    <!-- External dependencies -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+    
+    <!-- Our styles -->
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div id="container">
+        <canvas id="canvas"></canvas>
+        
+        <div id="controls">
+            <h3>Wiggly Band Simulator</h3>
+            
+            <div class="controls-scroll">
+                <!-- Band Properties Accordion -->
+                <div class="accordion-header">Band Properties</div>
+                <div class="accordion-content">
+                    <div class="control-group">
+                        <label>Frequency (Hz):</label>
+                        <input type="range" id="frequency" min="100" max="2000" value="440" step="10">
+                        <input type="number" id="freqDisplay" value="440" min="100" max="2000">
+                    </div>
+                    
+                    <div class="control-group">
+                        <label>Amplitude:</label>
+                        <input type="range" id="amplitude" min="5" max="50" value="15" step="1">
+                        <span id="ampDisplay">15</span>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label>Phase Offset:</label>
+                        <input type="range" id="phase" min="0" max="628" value="0" step="10">
+                        <span id="phaseDisplay">0</span>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label>Charge Power:</label>
+                        <input type="range" id="charge" min="0.1" max="5" value="2" step="0.1">
+                        <span id="chargeDisplay">2</span>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label>Elasticity:</label>
+                        <input type="range" id="elasticity" min="1" max="50" value="10" step="1">
+                        <span id="elasticityDisplay">10</span>%
+                    </div>
+                    
+                    <div class="control-group">
+                        <button id="addRandomBand">Add Random Band</button>
+                        <button id="playTone">Play Tone</button>
+                        <button id="stopTone">Stop Tone</button>
+                    </div>
+                </div>
+                
+                <!-- Physics Settings Accordion -->
+                <div class="accordion-header">Physics Settings</div>
+                <div class="accordion-content">
+                    <div class="control-group">
+                        <label>Field Strength:</label>
+                        <input type="range" id="fieldStrength" min="0" max="100" value="50" step="1">
+                        <span id="fieldStrengthDisplay">50</span>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label>Speed Limit:</label>
+                        <input type="range" id="speedLimit" min="1" max="20" value="5" step="0.5">
+                        <span id="speedLimitDisplay">5.0</span>
+                    </div>
+                    
+                    <div class="control-group interaction-rules">
+                        <h4>Interaction Rules</h4>
+                        <div class="rule">
+                            <label>Negative → Positive:</label>
+                            <select id="negToPos">
+                                <option value="-1" selected>Attract</option>
+                                <option value="1">Repel</option>
+                                <option value="0">Neutral</option>
+                            </select>
+                        </div>
+                        <div class="rule">
+                            <label>Positive → Positive:</label>
+                            <select id="posToPos">
+                                <option value="-1">Attract</option>
+                                <option value="1" selected>Repel</option>
+                                <option value="0">Neutral</option>
+                            </select>
+                        </div>
+                        <div class="rule">
+                            <label>Negative → Negative:</label>
+                            <select id="negToNeg">
+                                <option value="-1">Attract</option>
+                                <option value="1">Repel</option>
+                                <option value="0" selected>Neutral</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Collision & Harmonize Accordion -->
+                <div class="accordion-header">Collision & Harmonize</div>
+                <div class="accordion-content">
+                    <div class="control-group">
+                        <label>Merge Chance:</label>
+                        <input type="range" id="mergeChance" min="0" max="100" value="50" step="5">
+                        <span id="mergeChanceDisplay">50</span>%
+                    </div>
+                    
+                    <div class="control-group">
+                        <label>Harmonize Chance:</label>
+                        <input type="range" id="harmonizeChance" min="0" max="100" value="70" step="5">
+                        <span id="harmonizeChanceDisplay">70</span>%
+                    </div>
+                    
+                    <div class="control-group">
+                        <label>Merge Mode:</label>
+                        <select id="mergeMode">
+                            <option value="all" selected>All Collisions</option>
+                            <option value="harmonize">Harmonizing Only</option>
+                            <option value="non-harmonize">Non-Harmonizing Only</option>
+                        </select>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label>Harmonize Behavior:</label>
+                        <select id="harmonizeBehavior">
+                            <option value="random" selected>Random</option>
+                            <option value="merge">Merge</option>
+                            <option value="rings">Harmony Rings</option>
+                            <option value="tether">Tethered</option>
+                            <option value="oscillate">Oscillate</option>
+                        </select>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label>Sound Fade (ms):</label>
+                        <input type="range" id="soundFade" min="50" max="5000" value="2000" step="50">
+                        <span id="soundFadeDisplay">2000</span>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label>
+                            <input type="checkbox" id="collisionSounds" checked>
+                            Collision Sounds
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- Actions Accordion -->
+                <div class="accordion-header">Actions</div>
+                <div class="accordion-content">
+                    <div class="control-group">
+                        <button id="clearAll">Clear All</button>
+                        <button id="togglePhysics">Toggle Physics</button>
+                        <button id="exportBands">Export Bands</button>
+                    </div>
+                    
+                    <div class="control-group">
+                        <button id="toggleFieldPoints">Toggle Field Points</button>
+                        <button id="toggleBandVisibility">Toggle Band Shapes</button>
+                    </div>
+                </div>
+                
+                <!-- Visual Effects Accordion -->
+                <div class="accordion-header">Visual Effects</div>
+                <div class="accordion-content">
+                    <div class="control-group">
+                        <label>
+                            <input type="checkbox" id="fieldTrails" checked>
+                            Field Point Trails
+                        </label>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label>Trail Duration (s):</label>
+                        <input type="range" id="fieldTrailDuration" min="0.5" max="5" value="2" step="0.5">
+                        <span id="fieldTrailDurationDisplay">2.0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="info">
+            <div><strong>Instructions:</strong></div>
+            <div>• Click to add a wiggly band</div>
+            <div>• Adjust controls to modify properties</div>
+            <div>• Bands interact through charge fields</div>
+            <div>• <strong>Merge Modes:</strong></div>
+            <div>&nbsp;&nbsp;- <strong>All Collisions:</strong> Any bands can merge</div>
+            <div>&nbsp;&nbsp;- <strong>Harmonizing Only:</strong> Only harmonizing bands merge</div>
+            <div>&nbsp;&nbsp;- <strong>Non-Harmonizing Only:</strong> Only non-harmonizing bands merge</div>
+            <div>• <strong>Harmonization</strong> has separate chance from merging</div>
+            <div>• <strong>Harmonizing bands</strong> (simple frequency ratios) have special behaviors:</div>
+            <div>&nbsp;&nbsp;- <strong>Random:</strong> Randomly pick a behavior (default)</div>
+            <div>&nbsp;&nbsp;- <strong>Merge:</strong> Combine properties</div>
+            <div>&nbsp;&nbsp;- <strong>Harmony Rings:</strong> Nest inside each other (max 8)</div>
+            <div>&nbsp;&nbsp;- <strong>Tethered:</strong> Connect with stretchy line (max 2 per band)</div>
+            <div>&nbsp;&nbsp;- <strong>Oscillate:</strong> Animate between properties</div>
+            <div>• Bands that escape boundaries teleport back to center</div>
+            <div>• Speed limit prevents runaway velocity</div>
+            <div>• Bands stay in motion with minimal damping at low speeds</div>
+            <div>• Field trails show the path of field points</div>
+            <div>• Colors represent frequency (red=low, blue=high)</div>
+            <div>• Press 'H' to cycle harmonize behaviors</div>
+            <div>• Press 'T' to toggle field trails</div>
+            <div class="stats">
+                <div>Bands: <span id="bandCount">0</span></div>
+                <div>FPS: <span id="fps">60</span></div>
+                <div>Physics: <span id="physicsStatus">ON</span></div>
+                <div>Merges: <span id="mergeCount">0</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load our main app module -->
+    <script type="module" src="js/app.js"></script>
+</body>
+</html>
