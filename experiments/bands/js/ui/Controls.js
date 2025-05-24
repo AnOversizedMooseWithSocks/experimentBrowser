@@ -1,5 +1,5 @@
 // Controls.js - Handles all UI controls and user input
-// Manages sliders, buttons, and emits events through the event bus
+// Updated to support new toggle functionality and improved UI
 
 export class Controls {
     constructor(eventBus) {
@@ -7,6 +7,18 @@ export class Controls {
         
         // Cache control elements
         this.elements = {
+            // Main UI elements
+            sidebar: document.getElementById('controls'),
+            infoPanel: document.getElementById('info'),
+            
+            // Toggle buttons
+            toggleControls: document.getElementById('toggleControls'),
+            toggleHelp: document.getElementById('toggleHelp'),
+            closeSidebar: document.getElementById('closeSidebar'),
+            closeHelp: document.getElementById('closeHelp'),
+            quickAddBand: document.getElementById('quickAddBand'),
+            
+            // Control inputs
             frequency: document.getElementById('frequency'),
             freqDisplay: document.getElementById('freqDisplay'),
             amplitude: document.getElementById('amplitude'),
@@ -57,13 +69,17 @@ export class Controls {
             accordionHeaders: document.querySelectorAll('.accordion-header')
         };
         
+        // Track sidebar and info panel state
+        this.sidebarOpen = false;
+        this.infoPanelOpen = false;
+        
         // Initialize event listeners
         this.setupEventListeners();
         
         // Initialize accordions
         this.initializeAccordions();
         
-        console.log('Controls initialized');
+        console.log('Controls initialized with new UI');
     }
     
     /**
@@ -75,22 +91,51 @@ export class Controls {
                 const content = header.nextElementSibling;
                 const isOpen = content.classList.contains('active');
                 
-                // Toggle active class
+                // Toggle active class on both header and content
                 header.classList.toggle('active');
                 content.classList.toggle('active');
                 
-                // Animate height
-                if (isOpen) {
-                    content.style.maxHeight = null;
-                } else {
-                    content.style.maxHeight = content.scrollHeight + 'px';
+                // Optional: close other accordions when opening one
+                // Uncomment the following if you want only one accordion open at a time
+                /*
+                if (!isOpen) {
+                    this.elements.accordionHeaders.forEach(otherHeader => {
+                        if (otherHeader !== header) {
+                            otherHeader.classList.remove('active');
+                            otherHeader.nextElementSibling.classList.remove('active');
+                        }
+                    });
                 }
+                */
             });
         });
         
-        // Open first accordion by default
-        if (this.elements.accordionHeaders.length > 0) {
-            this.elements.accordionHeaders[0].click();
+        // First accordion is already open in HTML
+    }
+    
+    /**
+     * Toggle the controls sidebar
+     */
+    toggleSidebar() {
+        this.sidebarOpen = !this.sidebarOpen;
+        this.elements.sidebar.classList.toggle('active', this.sidebarOpen);
+        
+        // Optional: close info panel when opening sidebar
+        if (this.sidebarOpen && this.infoPanelOpen) {
+            this.toggleInfoPanel();
+        }
+    }
+    
+    /**
+     * Toggle the info/help panel
+     */
+    toggleInfoPanel() {
+        this.infoPanelOpen = !this.infoPanelOpen;
+        this.elements.infoPanel.classList.toggle('active', this.infoPanelOpen);
+        
+        // Optional: close sidebar when opening info panel
+        if (this.infoPanelOpen && this.sidebarOpen) {
+            this.toggleSidebar();
         }
     }
     
@@ -98,6 +143,36 @@ export class Controls {
      * Set up all event listeners for controls
      */
     setupEventListeners() {
+        // Toggle buttons
+        this.elements.toggleControls.addEventListener('click', () => {
+            this.toggleSidebar();
+        });
+        
+        this.elements.toggleHelp.addEventListener('click', () => {
+            this.toggleInfoPanel();
+        });
+        
+        this.elements.closeSidebar.addEventListener('click', () => {
+            this.toggleSidebar();
+        });
+        
+        this.elements.closeHelp.addEventListener('click', () => {
+            this.toggleInfoPanel();
+        });
+        
+        // Quick add band button
+        this.elements.quickAddBand.addEventListener('click', () => {
+            this.eventBus.emit('addRandomBand');
+        });
+        
+        // Close sidebar/panel on escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                if (this.sidebarOpen) this.toggleSidebar();
+                if (this.infoPanelOpen) this.toggleInfoPanel();
+            }
+        });
+        
         // Frequency controls
         this.elements.frequency.addEventListener('input', () => {
             this.elements.freqDisplay.value = this.elements.frequency.value;
@@ -141,21 +216,21 @@ export class Controls {
         // Elasticity control
         this.elements.elasticity.addEventListener('input', () => {
             const value = this.elements.elasticity.value;
-            this.elements.elasticityDisplay.textContent = value;
+            this.elements.elasticityDisplay.textContent = value + '%';
             this.eventBus.emit('elasticityChanged', parseFloat(value) / 100); // Convert percentage to 0-1 range
         });
         
         // Merge chance control
         this.elements.mergeChance.addEventListener('input', () => {
             const value = this.elements.mergeChance.value;
-            this.elements.mergeChanceDisplay.textContent = value;
+            this.elements.mergeChanceDisplay.textContent = value + '%';
             this.eventBus.emit('updateMergeChance', parseFloat(value) / 100); // Convert percentage to 0-1 range
         });
         
         // Harmonize chance control
         this.elements.harmonizeChance.addEventListener('input', () => {
             const value = this.elements.harmonizeChance.value;
-            this.elements.harmonizeChanceDisplay.textContent = value;
+            this.elements.harmonizeChanceDisplay.textContent = value + '%';
             this.eventBus.emit('updateHarmonizeChance', parseFloat(value) / 100); // Convert percentage to 0-1 range
         });
         
@@ -370,19 +445,19 @@ export class Controls {
         if (values.elasticity !== undefined) {
             const percentValue = values.elasticity * 100;
             this.elements.elasticity.value = percentValue;
-            this.elements.elasticityDisplay.textContent = percentValue;
+            this.elements.elasticityDisplay.textContent = percentValue + '%';
         }
         
         if (values.mergeChance !== undefined) {
             const percentValue = values.mergeChance * 100;
             this.elements.mergeChance.value = percentValue;
-            this.elements.mergeChanceDisplay.textContent = percentValue;
+            this.elements.mergeChanceDisplay.textContent = percentValue + '%';
         }
         
         if (values.harmonizeChance !== undefined) {
             const percentValue = values.harmonizeChance * 100;
             this.elements.harmonizeChance.value = percentValue;
-            this.elements.harmonizeChanceDisplay.textContent = percentValue;
+            this.elements.harmonizeChanceDisplay.textContent = percentValue + '%';
         }
         
         if (values.soundFade !== undefined) {

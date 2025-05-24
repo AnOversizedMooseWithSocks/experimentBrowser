@@ -13,88 +13,182 @@
 </head>
 <body>
     <div id="container">
+        <!-- Main canvas area -->
         <canvas id="canvas"></canvas>
         
-        <div id="controls">
-            <h3>Wiggly Band Simulator</h3>
+        <!-- Floating UI buttons -->
+        <div id="floatingButtons">
+            <!-- Toggle controls button -->
+            <button id="toggleControls" class="fab" title="Toggle Controls">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path d="M12 1v6m0 6v6m-9-9h6m6 0h6m-4.2-4.2l1.4-1.4m-1.4 9.8l1.4 1.4m-9.8-1.4l-1.4 1.4m1.4-9.8l-1.4-1.4"></path>
+                </svg>
+            </button>
+            
+            <!-- Toggle help button -->
+            <button id="toggleHelp" class="fab" title="Toggle Help">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <path d="M9.5 9a3 3 0 0 1 5 1c0 2-3 3-3 3m.05 3h.01"></path>
+                </svg>
+            </button>
+            
+            <!-- Quick action: Add random band -->
+            <button id="quickAddBand" class="fab" title="Add Random Band">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+            </button>
+        </div>
+        
+        <!-- Status bar at top -->
+        <div id="statusBar">
+            <div class="status-item">
+                <span class="status-label">Bands</span>
+                <span id="bandCount" class="status-value">0</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Physics</span>
+                <span id="physicsStatus" class="status-value status-active">ON</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Merges</span>
+                <span id="mergeCount" class="status-value">0</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">FPS</span>
+                <span id="fps" class="status-value">60</span>
+            </div>
+        </div>
+        
+        <!-- Controls sidebar (hidden by default) -->
+        <div id="controls" class="sidebar">
+            <div class="sidebar-header">
+                <h3>Controls</h3>
+                <button id="closeSidebar" class="close-btn">×</button>
+            </div>
             
             <div class="controls-scroll">
                 <!-- Band Properties Accordion -->
-                <div class="accordion-header">Band Properties</div>
-                <div class="accordion-content">
+                <div class="accordion-header active">
+                    <svg class="accordion-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="M8 12h8m-4-4v8"></path>
+                    </svg>
+                    Band Properties
+                </div>
+                <div class="accordion-content active">
                     <div class="control-group">
-                        <label>Frequency (Hz):</label>
-                        <input type="range" id="frequency" min="100" max="2000" value="440" step="10">
-                        <input type="number" id="freqDisplay" value="440" min="100" max="2000">
+                        <label>Frequency (Hz)</label>
+                        <div class="control-input-group">
+                            <input type="range" id="frequency" min="100" max="2000" value="440" step="10">
+                            <input type="number" id="freqDisplay" value="440" min="100" max="2000" class="number-input">
+                        </div>
                     </div>
                     
                     <div class="control-group">
-                        <label>Amplitude:</label>
-                        <input type="range" id="amplitude" min="5" max="50" value="15" step="1">
-                        <span id="ampDisplay">15</span>
+                        <label>Amplitude</label>
+                        <div class="control-input-group">
+                            <input type="range" id="amplitude" min="5" max="50" value="15" step="1">
+                            <span id="ampDisplay" class="value-display">15</span>
+                        </div>
                     </div>
                     
                     <div class="control-group">
-                        <label>Phase Offset:</label>
-                        <input type="range" id="phase" min="0" max="628" value="0" step="10">
-                        <span id="phaseDisplay">0</span>
+                        <label>Phase Offset</label>
+                        <div class="control-input-group">
+                            <input type="range" id="phase" min="0" max="628" value="0" step="10">
+                            <span id="phaseDisplay" class="value-display">0</span>
+                        </div>
                     </div>
                     
                     <div class="control-group">
-                        <label>Charge Power:</label>
-                        <input type="range" id="charge" min="0.1" max="5" value="2" step="0.1">
-                        <span id="chargeDisplay">2</span>
+                        <label>Charge Power</label>
+                        <div class="control-input-group">
+                            <input type="range" id="charge" min="0.1" max="5" value="2" step="0.1">
+                            <span id="chargeDisplay" class="value-display">2</span>
+                        </div>
                     </div>
                     
                     <div class="control-group">
-                        <label>Elasticity:</label>
-                        <input type="range" id="elasticity" min="1" max="50" value="10" step="1">
-                        <span id="elasticityDisplay">10</span>%
+                        <label>Elasticity</label>
+                        <div class="control-input-group">
+                            <input type="range" id="elasticity" min="1" max="50" value="10" step="1">
+                            <span id="elasticityDisplay" class="value-display">10%</span>
+                        </div>
                     </div>
                     
-                    <div class="control-group">
-                        <button id="addRandomBand">Add Random Band</button>
-                        <button id="playTone">Play Tone</button>
-                        <button id="stopTone">Stop Tone</button>
+                    <div class="control-group button-group">
+                        <button id="addRandomBand" class="control-btn">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 5v14m-7-7h14"></path>
+                            </svg>
+                            Add Random
+                        </button>
+                        <button id="playTone" class="control-btn">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                                <path d="M15.5 9.5a4 4 0 0 1 0 5"></path>
+                            </svg>
+                            Play
+                        </button>
+                        <button id="stopTone" class="control-btn">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="6" y="6" width="12" height="12"></rect>
+                            </svg>
+                            Stop
+                        </button>
                     </div>
                 </div>
                 
                 <!-- Physics Settings Accordion -->
-                <div class="accordion-header">Physics Settings</div>
+                <div class="accordion-header">
+                    <svg class="accordion-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2v10l4 4"></path>
+                        <circle cx="12" cy="18" r="3"></circle>
+                    </svg>
+                    Physics Settings
+                </div>
                 <div class="accordion-content">
                     <div class="control-group">
-                        <label>Field Strength:</label>
-                        <input type="range" id="fieldStrength" min="0" max="100" value="50" step="1">
-                        <span id="fieldStrengthDisplay">50</span>
+                        <label>Field Strength</label>
+                        <div class="control-input-group">
+                            <input type="range" id="fieldStrength" min="0" max="100" value="50" step="1">
+                            <span id="fieldStrengthDisplay" class="value-display">50</span>
+                        </div>
                     </div>
                     
                     <div class="control-group">
-                        <label>Speed Limit:</label>
-                        <input type="range" id="speedLimit" min="1" max="20" value="5" step="0.5">
-                        <span id="speedLimitDisplay">5.0</span>
+                        <label>Speed Limit</label>
+                        <div class="control-input-group">
+                            <input type="range" id="speedLimit" min="1" max="20" value="5" step="0.5">
+                            <span id="speedLimitDisplay" class="value-display">5.0</span>
+                        </div>
                     </div>
                     
                     <div class="control-group interaction-rules">
                         <h4>Interaction Rules</h4>
                         <div class="rule">
-                            <label>Negative → Positive:</label>
-                            <select id="negToPos">
+                            <label>Negative → Positive</label>
+                            <select id="negToPos" class="rule-select">
                                 <option value="-1" selected>Attract</option>
                                 <option value="1">Repel</option>
                                 <option value="0">Neutral</option>
                             </select>
                         </div>
                         <div class="rule">
-                            <label>Positive → Positive:</label>
-                            <select id="posToPos">
+                            <label>Positive → Positive</label>
+                            <select id="posToPos" class="rule-select">
                                 <option value="-1">Attract</option>
                                 <option value="1" selected>Repel</option>
                                 <option value="0">Neutral</option>
                             </select>
                         </div>
                         <div class="rule">
-                            <label>Negative → Negative:</label>
-                            <select id="negToNeg">
+                            <label>Negative → Negative</label>
+                            <select id="negToNeg" class="rule-select">
                                 <option value="-1">Attract</option>
                                 <option value="1">Repel</option>
                                 <option value="0" selected>Neutral</option>
@@ -104,23 +198,33 @@
                 </div>
                 
                 <!-- Collision & Harmonize Accordion -->
-                <div class="accordion-header">Collision & Harmonize</div>
+                <div class="accordion-header">
+                    <svg class="accordion-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="9" cy="12" r="3"></circle>
+                        <circle cx="15" cy="12" r="3"></circle>
+                    </svg>
+                    Collision & Harmonize
+                </div>
                 <div class="accordion-content">
                     <div class="control-group">
-                        <label>Merge Chance:</label>
-                        <input type="range" id="mergeChance" min="0" max="100" value="50" step="5">
-                        <span id="mergeChanceDisplay">50</span>%
+                        <label>Merge Chance</label>
+                        <div class="control-input-group">
+                            <input type="range" id="mergeChance" min="0" max="100" value="50" step="5">
+                            <span id="mergeChanceDisplay" class="value-display">50%</span>
+                        </div>
                     </div>
                     
                     <div class="control-group">
-                        <label>Harmonize Chance:</label>
-                        <input type="range" id="harmonizeChance" min="0" max="100" value="70" step="5">
-                        <span id="harmonizeChanceDisplay">70</span>%
+                        <label>Harmonize Chance</label>
+                        <div class="control-input-group">
+                            <input type="range" id="harmonizeChance" min="0" max="100" value="70" step="5">
+                            <span id="harmonizeChanceDisplay" class="value-display">70%</span>
+                        </div>
                     </div>
                     
                     <div class="control-group">
-                        <label>Merge Mode:</label>
-                        <select id="mergeMode">
+                        <label>Merge Mode</label>
+                        <select id="mergeMode" class="control-select">
                             <option value="all" selected>All Collisions</option>
                             <option value="harmonize">Harmonizing Only</option>
                             <option value="non-harmonize">Non-Harmonizing Only</option>
@@ -128,8 +232,8 @@
                     </div>
                     
                     <div class="control-group">
-                        <label>Harmonize Behavior:</label>
-                        <select id="harmonizeBehavior">
+                        <label>Harmonize Behavior</label>
+                        <select id="harmonizeBehavior" class="control-select">
                             <option value="random" selected>Random</option>
                             <option value="merge">Merge</option>
                             <option value="rings">Harmony Rings</option>
@@ -139,81 +243,162 @@
                     </div>
                     
                     <div class="control-group">
-                        <label>Sound Fade (ms):</label>
-                        <input type="range" id="soundFade" min="50" max="5000" value="2000" step="50">
-                        <span id="soundFadeDisplay">2000</span>
+                        <label>Sound Fade (ms)</label>
+                        <div class="control-input-group">
+                            <input type="range" id="soundFade" min="50" max="5000" value="2000" step="50">
+                            <span id="soundFadeDisplay" class="value-display">2000</span>
+                        </div>
                     </div>
                     
                     <div class="control-group">
-                        <label>
+                        <label class="checkbox-label">
                             <input type="checkbox" id="collisionSounds" checked>
+                            <span class="checkbox-custom"></span>
                             Collision Sounds
                         </label>
                     </div>
                 </div>
                 
                 <!-- Actions Accordion -->
-                <div class="accordion-header">Actions</div>
+                <div class="accordion-header">
+                    <svg class="accordion-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="9" y1="9" x2="15" y2="15"></line>
+                        <line x1="15" y1="9" x2="9" y2="15"></line>
+                    </svg>
+                    Actions
+                </div>
                 <div class="accordion-content">
-                    <div class="control-group">
-                        <button id="clearAll">Clear All</button>
-                        <button id="togglePhysics">Toggle Physics</button>
-                        <button id="exportBands">Export Bands</button>
-                    </div>
-                    
-                    <div class="control-group">
-                        <button id="toggleFieldPoints">Toggle Field Points</button>
-                        <button id="toggleBandVisibility">Toggle Band Shapes</button>
+                    <div class="control-group button-grid">
+                        <button id="clearAll" class="control-btn danger">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="3 6 5 6 21 6"></polyline>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path>
+                            </svg>
+                            Clear All
+                        </button>
+                        <button id="togglePhysics" class="control-btn">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="3"></circle>
+                                <path d="M12 1v6m0 6v6"></path>
+                            </svg>
+                            Toggle Physics
+                        </button>
+                        <button id="exportBands" class="control-btn">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="7 10 12 15 17 10"></polyline>
+                                <line x1="12" y1="15" x2="12" y2="3"></line>
+                            </svg>
+                            Export
+                        </button>
+                        <button id="toggleFieldPoints" class="control-btn">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="1"></circle>
+                                <circle cx="12" cy="12" r="5"></circle>
+                                <circle cx="12" cy="12" r="9"></circle>
+                            </svg>
+                            Field Points
+                        </button>
+                        <button id="toggleBandVisibility" class="control-btn">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                            Band Shapes
+                        </button>
                     </div>
                 </div>
                 
                 <!-- Visual Effects Accordion -->
-                <div class="accordion-header">Visual Effects</div>
+                <div class="accordion-header">
+                    <svg class="accordion-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                    </svg>
+                    Visual Effects
+                </div>
                 <div class="accordion-content">
                     <div class="control-group">
-                        <label>
+                        <label class="checkbox-label">
                             <input type="checkbox" id="fieldTrails" checked>
+                            <span class="checkbox-custom"></span>
                             Field Point Trails
                         </label>
                     </div>
                     
                     <div class="control-group">
-                        <label>Trail Duration (s):</label>
-                        <input type="range" id="fieldTrailDuration" min="0.5" max="5" value="2" step="0.5">
-                        <span id="fieldTrailDurationDisplay">2.0</span>
+                        <label>Trail Duration (s)</label>
+                        <div class="control-input-group">
+                            <input type="range" id="fieldTrailDuration" min="0.5" max="5" value="2" step="0.5">
+                            <span id="fieldTrailDurationDisplay" class="value-display">2.0</span>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
         
-        <div id="info">
-            <div><strong>Instructions:</strong></div>
-            <div>• Click to add a wiggly band</div>
-            <div>• Adjust controls to modify properties</div>
-            <div>• Bands interact through charge fields</div>
-            <div>• <strong>Merge Modes:</strong></div>
-            <div>&nbsp;&nbsp;- <strong>All Collisions:</strong> Any bands can merge</div>
-            <div>&nbsp;&nbsp;- <strong>Harmonizing Only:</strong> Only harmonizing bands merge</div>
-            <div>&nbsp;&nbsp;- <strong>Non-Harmonizing Only:</strong> Only non-harmonizing bands merge</div>
-            <div>• <strong>Harmonization</strong> has separate chance from merging</div>
-            <div>• <strong>Harmonizing bands</strong> (simple frequency ratios) have special behaviors:</div>
-            <div>&nbsp;&nbsp;- <strong>Random:</strong> Randomly pick a behavior (default)</div>
-            <div>&nbsp;&nbsp;- <strong>Merge:</strong> Combine properties</div>
-            <div>&nbsp;&nbsp;- <strong>Harmony Rings:</strong> Nest inside each other (max 8)</div>
-            <div>&nbsp;&nbsp;- <strong>Tethered:</strong> Connect with stretchy line (max 2 per band)</div>
-            <div>&nbsp;&nbsp;- <strong>Oscillate:</strong> Animate between properties</div>
-            <div>• Bands that escape boundaries teleport back to center</div>
-            <div>• Speed limit prevents runaway velocity</div>
-            <div>• Bands stay in motion with minimal damping at low speeds</div>
-            <div>• Field trails show the path of field points</div>
-            <div>• Colors represent frequency (red=low, blue=high)</div>
-            <div>• Press 'H' to cycle harmonize behaviors</div>
-            <div>• Press 'T' to toggle field trails</div>
-            <div class="stats">
-                <div>Bands: <span id="bandCount">0</span></div>
-                <div>FPS: <span id="fps">60</span></div>
-                <div>Physics: <span id="physicsStatus">ON</span></div>
-                <div>Merges: <span id="mergeCount">0</span></div>
+        <!-- Help/Info panel (hidden by default) -->
+        <div id="info" class="info-panel">
+            <div class="info-header">
+                <h3>Help & Instructions</h3>
+                <button id="closeHelp" class="close-btn">×</button>
+            </div>
+            
+            <div class="info-content">
+                <div class="info-section">
+                    <h4>Getting Started</h4>
+                    <ul>
+                        <li><strong>Click anywhere</strong> on the canvas to add a wiggly band</li>
+                        <li>Use the <strong>controls panel</strong> to adjust band properties</li>
+                        <li>Bands interact through <strong>charge fields</strong></li>
+                    </ul>
+                </div>
+                
+                <div class="info-section">
+                    <h4>Merge Modes</h4>
+                    <ul>
+                        <li><strong>All Collisions:</strong> Any bands can merge</li>
+                        <li><strong>Harmonizing Only:</strong> Only harmonizing bands merge</li>
+                        <li><strong>Non-Harmonizing Only:</strong> Only non-harmonizing bands merge</li>
+                    </ul>
+                </div>
+                
+                <div class="info-section">
+                    <h4>Harmonization</h4>
+                    <p>Harmonization has separate chance from merging. Harmonizing bands (simple frequency ratios) have special behaviors:</p>
+                    <ul>
+                        <li><strong>Random:</strong> Randomly pick a behavior</li>
+                        <li><strong>Merge:</strong> Combine properties</li>
+                        <li><strong>Harmony Rings:</strong> Nest inside each other (max 8)</li>
+                        <li><strong>Tethered:</strong> Connect with stretchy line (max 2 per band)</li>
+                        <li><strong>Oscillate:</strong> Animate between properties</li>
+                    </ul>
+                </div>
+                
+                <div class="info-section">
+                    <h4>Visual Elements</h4>
+                    <ul>
+                        <li>Colors represent frequency (red=low, blue=high)</li>
+                        <li>Field trails show the path of field points</li>
+                        <li>Bands that escape boundaries teleport back to center</li>
+                        <li>Speed limit prevents runaway velocity</li>
+                    </ul>
+                </div>
+                
+                <div class="info-section">
+                    <h4>Keyboard Shortcuts</h4>
+                    <ul>
+                        <li><kbd>Space</kbd> - Toggle physics</li>
+                        <li><kbd>R</kbd> - Add random band</li>
+                        <li><kbd>H</kbd> - Cycle harmonize behaviors</li>
+                        <li><kbd>T</kbd> - Toggle field trails</li>
+                        <li><kbd>F</kbd> - Toggle field points</li>
+                        <li><kbd>V</kbd> - Toggle band visibility</li>
+                        <li><kbd>M</kbd> - Toggle collision sounds</li>
+                        <li><kbd>P</kbd> - Play tone</li>
+                        <li><kbd>S</kbd> - Stop tone</li>
+                    </ul>
+                </div>
             </div>
         </div>
     </div>

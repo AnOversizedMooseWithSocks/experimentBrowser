@@ -948,7 +948,18 @@ function clearAllBands() {
 // Toggle physics simulation
 function togglePhysics() {
     app.physicsEnabled = !app.physicsEnabled;
-    document.getElementById('physicsStatus').textContent = app.physicsEnabled ? 'ON' : 'OFF';
+    
+    // Update the status display with proper styling
+    const statusElement = document.getElementById('physicsStatus');
+    statusElement.textContent = app.physicsEnabled ? 'ON' : 'OFF';
+    
+    // Add/remove the active class for color styling
+    if (app.physicsEnabled) {
+        statusElement.classList.add('status-active');
+    } else {
+        statusElement.classList.remove('status-active');
+    }
+    
     console.log('Physics', app.physicsEnabled ? 'enabled' : 'disabled');
 }
 
