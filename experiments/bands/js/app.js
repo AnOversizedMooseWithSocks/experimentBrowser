@@ -1,9 +1,11 @@
 // Main application entry point
 // This file coordinates all the modules and initializes the simulation
+// Updated to handle listener entity with spatial audio
 
 import { PhysicsEngine } from './engine/PhysicsEngine.js';
 import { Renderer } from './rendering/Renderer.js';
 import { WigglyBand } from './entities/WigglyBand.js';
+import { Listener } from './entities/Listener.js';
 import { AudioManager } from './audio/AudioManager.js';
 import { Controls } from './ui/Controls.js';
 import { EventBus } from './utils/EventBus.js';
@@ -17,6 +19,7 @@ const app = {
     eventBus: null,
     bands: [],
     tethers: [], // Store tether connections
+    listener: null, // The listener entity
     physicsEnabled: true,
     animationId: null,
     mergeChance: 0.5, // 50% chance to merge on collision
@@ -37,12 +40,17 @@ const app = {
     fieldStrengthMultiplier: 0.05,  // Actual multiplier (50/1000 = 0.05)
     speedLimit: 5.0, // Maximum velocity magnitude (increased back to 5.0)
     fieldTrailsEnabled: true, // Whether to show field point trails (enabled by default)
-    fieldTrailDuration: 2.0 // Duration of field trails in seconds (0.5 to 5)
+    fieldTrailDuration: 2.0, // Duration of field trails in seconds (0.5 to 5)
+    soundVisualizationEnabled: true, // Whether to show sound waves (enabled by default)
+    currentlyPlayingBand: null, // Track which band is playing a tone
+    listenerFieldInteractionEnabled: false, // Whether listener is affected by fields
+    isDraggingListener: false, // Track listener drag state
+    mousePosition: { x: 0, y: 0 } // Track mouse position for dragging
 };
 
 // Initialize the application
 async function init() {
-    console.log('Initializing Wiggly Band Simulation...');
+    console.log('Initializing Wiggly Band Simulation with Listener Support...');
     
     // Create event bus for communication between modules
     app.eventBus = new EventBus();
@@ -57,6 +65,7 @@ async function init() {
     // Initialize renderer
     app.renderer = new Renderer(canvas);
     app.renderer.setFieldTrailsEnabled(app.fieldTrailsEnabled); // Enable field trails
+    app.renderer.showSoundWaves = app.soundVisualizationEnabled; // Set initial sound wave state
     
     // Initialize audio manager
     app.audioManager = new AudioManager();
@@ -74,12 +83,117 @@ async function init() {
     startAnimation();
     
     console.log('Simulation initialized successfully!');
-    console.log('Default interaction rules:', app.interactionRules);
-    console.log('Field Strength Slider:', app.fieldStrengthSliderValue);
-    console.log('Tips: 1) Bands need to be close to interact');
-    console.log('      2) Try Field Strength = 50-100 for stronger effects');
-    console.log('      3) Toggle Field Points to see interaction zones');
-    console.log('      4) Harmonizing bands randomly choose special behaviors');
+    console.log('Tips: 1) Press L to place/remove listener');
+    console.log('      2) Drag the listener to move it around');
+    console.log('      3) Adjust listening radius to control hearing range');
+    console.log('      4) Bands within range will have spatial audio');
+    console.log('      5) Enable field interaction for listener to be affected by bands');
+}
+
+// Place listener at position
+function placeListener(x = null, y = null) {
+    if (app.listener) {
+        console.log('Listener already exists');
+        return;
+    }
+    
+    // Default to center if no position specified
+    if (x === null || y === null) {
+        x = app.canvas.width / 2;
+        y = app.canvas.height / 2;
+    }
+    
+    // Create listener
+    app.listener = new Listener(x, y);
+    
+    // Set initial listening radius from controls
+    const controlValues = app.controls.getValues();
+    app.listener.setListeningRadius(controlValues.listeningRadius);
+    
+    // Set field interaction state
+    app.listener.setFieldInteractionEnabled(app.listenerFieldInteractionEnabled);
+    
+    // Connect to audio manager
+    app.audioManager.setListener(app.listener);
+    
+    // Update UI
+    app.controls.updateListenerControls(true);
+    updateListenerStatus();
+    
+    console.log('Listener placed at', x, y);
+}
+
+// Remove the listener
+function removeListener() {
+    if (!app.listener) return;
+    
+    // Clean up any active spatial sounds before removing listener
+    app.audioManager.cleanupSpatialSounds();
+    app.audioManager.cleanupResonatingBands();
+    
+    // Stop all bands from resonating
+    app.bands.forEach(band => {
+        if (band.isResonating) {
+            band.stopResonating();
+        }
+    });
+    
+    app.listener = null;
+    app.audioManager.setListener(null);
+    
+    // Update UI
+    app.controls.updateListenerControls(false);
+    updateListenerStatus();
+    
+    console.log('Listener removed and all spatial sounds cleaned up');
+}
+
+// Update listener status display
+function updateListenerStatus() {
+    const statusElement = document.getElementById('listenerStatus');
+    if (app.listener) {
+        statusElement.textContent = 'ON';
+        statusElement.classList.add('status-active');
+    } else {
+        statusElement.textContent = 'OFF';
+        statusElement.classList.remove('status-active');
+    }
+}
+
+// Handle mouse events for listener dragging
+function handleMouseDown(event) {
+    if (!app.listener) return;
+    
+    const rect = app.canvas.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    
+    // Check if clicking on listener
+    if (app.listener.containsPoint(x, y)) {
+        app.isDraggingListener = true;
+        app.listener.startDrag(x, y);
+        app.canvas.style.cursor = 'move';
+        event.stopPropagation(); // Prevent band creation
+    }
+}
+
+function handleMouseMove(event) {
+    const rect = app.canvas.getBoundingClientRect();
+    app.mousePosition.x = event.clientX - rect.left;
+    app.mousePosition.y = event.clientY - rect.top;
+    
+    // Update listener drag if active
+    if (app.isDraggingListener && app.listener) {
+        app.listener.updateDrag(app.mousePosition.x, app.mousePosition.y);
+    }
+}
+
+function handleMouseUp(event) {
+    if (app.isDraggingListener && app.listener) {
+        app.listener.stopDrag();
+        app.isDraggingListener = false;
+        app.canvas.style.cursor = 'crosshair';
+    }
 }
 
 // Check if two frequencies harmonize (simple integer ratios)
@@ -114,6 +228,64 @@ function areFrequenciesHarmonious(freq1, freq2) {
     }
     
     return false;
+}
+
+// Check for resonance between bands
+function checkForResonance() {
+    // Only check if sound visualization is enabled and we have a listener
+    if (!app.soundVisualizationEnabled || !app.listener) return;
+    
+    // First, clear resonance for bands that are no longer in range
+    app.bands.forEach(band => {
+        if (band.isResonating && band.resonanceSource) {
+            const distance = getDistance(band, band.resonanceSource);
+            const soundRange = band.resonanceSource.getSoundRange();
+            
+            if (!band.resonanceSource.isEmittingSound || distance > soundRange) {
+                // Stop resonating
+                band.stopResonating();
+                app.audioManager.stopResonance(band);
+            }
+        }
+    });
+    
+    // Check for new resonances
+    app.bands.forEach(emitter => {
+        if (emitter.isEmittingSound && !emitter.isInHarmonyRing) {
+            const soundRange = emitter.getSoundRange();
+            
+            app.bands.forEach(receiver => {
+                // Skip self, bands in harmony rings, and already resonating bands
+                if (receiver === emitter || receiver.isInHarmonyRing || 
+                    (receiver.isResonating && receiver.resonanceSource === emitter)) {
+                    return;
+                }
+                
+                const distance = getDistance(emitter, receiver);
+                
+                if (distance <= soundRange) {
+                    // Check if they harmonize
+                    if (areFrequenciesHarmonious(emitter.frequency, receiver.frequency)) {
+                        // Start resonating
+                        receiver.startResonating(emitter);
+                        
+                        // Play quiet resonance sound only if listener exists
+                        if (app.listener) {
+                            const resonanceVolume = 0.05 * (1 - distance / soundRange); // Quieter based on distance
+                            app.audioManager.playResonance(receiver, resonanceVolume);
+                        }
+                    }
+                }
+            });
+        }
+    });
+}
+
+// Helper function to get distance between two bands
+function getDistance(bandA, bandB) {
+    const dx = bandB.position.x - bandA.position.x;
+    const dy = bandB.position.y - bandA.position.y;
+    return Math.sqrt(dx * dx + dy * dy);
 }
 
 // Set up collision detection using Matter.js events
@@ -413,25 +585,30 @@ function playCollisionSound(bandA, bandB) {
     // Get all frequencies involved (including harmony ring members)
     const frequencies = [];
     const sizes = [];
+    const positions = [];
     
     if (bandA.harmonyRing) {
         bandA.harmonyRing.forEach(band => {
             frequencies.push(band.frequency);
             sizes.push((band.radiusX + band.radiusY) / 2);
+            positions.push(band.position);
         });
     } else {
         frequencies.push(bandA.frequency);
         sizes.push((bandA.radiusX + bandA.radiusY) / 2);
+        positions.push(bandA.position);
     }
     
     if (bandB.harmonyRing) {
         bandB.harmonyRing.forEach(band => {
             frequencies.push(band.frequency);
             sizes.push((band.radiusX + band.radiusY) / 2);
+            positions.push(band.position);
         });
     } else {
         frequencies.push(bandB.frequency);
         sizes.push((bandB.radiusX + bandB.radiusY) / 2);
+        positions.push(bandB.position);
     }
     
     // Also check for tethered bands
@@ -447,6 +624,7 @@ function playCollisionSound(bandA, bandB) {
         if (!frequencies.includes(band.frequency)) {
             frequencies.push(band.frequency);
             sizes.push((band.radiusX + band.radiusY) / 2);
+            positions.push(band.position);
         }
     });
     
@@ -454,6 +632,7 @@ function playCollisionSound(bandA, bandB) {
         if (!frequencies.includes(band.frequency)) {
             frequencies.push(band.frequency);
             sizes.push((band.radiusX + band.radiusY) / 2);
+            positions.push(band.position);
         }
     });
     
@@ -469,7 +648,16 @@ function playCollisionSound(bandA, bandB) {
         const volumeFactor = Math.min(size / 60, 1);
         const initialVolume = 0.05 + (volumeFactor * 0.1);
         
-        app.audioManager.playCollisionSound(freq, fadeDuration, initialVolume);
+        // Pass position for spatial audio
+        app.audioManager.playCollisionSound(freq, fadeDuration, initialVolume, positions[index]);
+        
+        // Make the colliding bands emit sound briefly
+        // Only do this for the main colliding bands, not all harmony ring members
+        if (index === 0 && !bandA.isInHarmonyRing) { // First band
+            bandA.startSoundEmission(fadeDuration, initialVolume);
+        } else if (index === 1 && !bandB.isInHarmonyRing) { // Second band
+            bandB.startSoundEmission(fadeDuration, initialVolume);
+        }
     });
 }
 
@@ -667,6 +855,20 @@ function mergeBands(bandA, bandB) {
 
 // Remove a band from the simulation
 function removeBand(band) {
+    // Stop any sound emission
+    if (band.isEmittingSound) {
+        band.stopSoundEmission();
+    }
+    
+    // Stop any resonance
+    if (band.isResonating) {
+        band.stopResonating();
+        app.audioManager.stopResonance(band);
+    }
+    
+    // Stop any spatial sounds
+    app.audioManager.stopSpatialSound(band);
+    
     // Remove from physics engine
     app.engine.removeBand(band);
     
@@ -717,18 +919,71 @@ function removeBand(band) {
 function setupEventListeners() {
     const canvas = document.getElementById('canvas');
     
-    // Canvas click - add band at position
+    // Mouse events for listener dragging
+    canvas.addEventListener('mousedown', handleMouseDown);
+    canvas.addEventListener('mousemove', handleMouseMove);
+    canvas.addEventListener('mouseup', handleMouseUp);
+    
+    // Canvas click - add band at position OR make clicked band emit sound
     canvas.addEventListener('click', (event) => {
+        // Skip if we were dragging the listener
+        if (app.isDraggingListener) return;
+        
         const rect = canvas.getBoundingClientRect();
         let x = event.clientX - rect.left;
         let y = event.clientY - rect.top;
         
-        // Ensure band is created with margin from edges
-        const margin = 50;
-        x = Math.max(margin, Math.min(canvas.width - margin, x));
-        y = Math.max(margin, Math.min(canvas.height - margin, y));
+        // Check if we clicked on the listener
+        if (app.listener && app.listener.containsPoint(x, y)) {
+            return; // Don't add band on listener
+        }
         
-        app.eventBus.emit('addBand', { x, y });
+        // Check if we clicked on an existing band
+        let clickedBand = null;
+        let minDistance = Infinity;
+        
+        app.bands.forEach(band => {
+            const dx = band.position.x - x;
+            const dy = band.position.y - y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            const bandRadius = Math.max(band.radiusX, band.radiusY);
+            
+            if (distance < bandRadius && distance < minDistance) {
+                minDistance = distance;
+                clickedBand = band;
+            }
+        });
+        
+        if (clickedBand) {
+            // Make the clicked band emit sound
+            console.log(`Band clicked! Emitting sound at ${clickedBand.frequency.toFixed(0)} Hz`);
+            
+            // Stop any currently playing bands and their spatial sounds
+            app.bands.forEach(band => {
+                if (band.isEmittingSound) {
+                    band.stopSoundEmission();
+                    // Immediately stop spatial sound
+                    if (app.listener) {
+                        app.audioManager.stopSpatialSound(band);
+                    }
+                }
+            });
+            
+            // Start emission from clicked band
+            clickedBand.startSoundEmission(3000, 0.15); // 3 seconds, moderate volume
+            
+            // Play the actual sound (with spatial positioning if listener exists)
+            const position = clickedBand.position;
+            app.audioManager.playCollisionSound(clickedBand.frequency, 3000, 0.15, position);
+        } else {
+            // No band clicked, add a new one
+            // Ensure band is created with margin from edges
+            const margin = 50;
+            x = Math.max(margin, Math.min(canvas.width - margin, x));
+            y = Math.max(margin, Math.min(canvas.height - margin, y));
+            
+            app.eventBus.emit('addBand', { x, y });
+        }
     });
     
     // Control events
@@ -752,12 +1007,81 @@ function setupEventListeners() {
         exportBands();
     });
     
+    app.eventBus.on('placeListener', () => {
+        placeListener();
+    });
+    
+    app.eventBus.on('removeListener', () => {
+        removeListener();
+    });
+    
+    app.eventBus.on('toggleListener', () => {
+        if (app.listener) {
+            removeListener();
+        } else {
+            placeListener();
+        }
+    });
+    
+    app.eventBus.on('updateListeningRadius', (radius) => {
+        if (app.listener) {
+            app.listener.setListeningRadius(radius);
+            console.log('Listening radius updated to:', radius);
+        }
+    });
+    
+    app.eventBus.on('toggleListenerRange', () => {
+        if (app.listener) {
+            app.listener.toggleListeningRadiusVisibility();
+            app.renderer.toggleListenerRange();
+        }
+    });
+    
+    app.eventBus.on('toggleListenerFieldInteraction', (enabled) => {
+        app.listenerFieldInteractionEnabled = enabled;
+        if (app.listener) {
+            app.listener.setFieldInteractionEnabled(enabled);
+        }
+        console.log('Listener field interaction', enabled ? 'enabled' : 'disabled');
+    });
+    
     app.eventBus.on('playTone', (frequency) => {
+        // Stop any currently playing tone
+        if (app.currentlyPlayingBand) {
+            app.currentlyPlayingBand.stopSoundEmission();
+            // Immediately stop spatial sound
+            if (app.listener) {
+                app.audioManager.stopSpatialSound(app.currentlyPlayingBand);
+            }
+            app.currentlyPlayingBand = null;
+        }
+        
+        // Play the tone
         app.audioManager.playTone(frequency);
+        
+        // Find a band with matching frequency to make it emit sound
+        const matchingBand = app.bands.find(band => 
+            Math.abs(band.frequency - frequency) < 10 // Within 10Hz
+        );
+        
+        if (matchingBand) {
+            matchingBand.startSoundEmission(5000, 0.2); // Emit for 5 seconds
+            app.currentlyPlayingBand = matchingBand;
+        }
     });
     
     app.eventBus.on('stopTone', () => {
         app.audioManager.stopTone();
+        
+        // Stop the currently playing band
+        if (app.currentlyPlayingBand) {
+            app.currentlyPlayingBand.stopSoundEmission();
+            // Immediately stop spatial sound
+            if (app.listener) {
+                app.audioManager.stopSpatialSound(app.currentlyPlayingBand);
+            }
+            app.currentlyPlayingBand = null;
+        }
     });
     
     app.eventBus.on('elasticityChanged', (elasticity) => {
@@ -831,6 +1155,18 @@ function setupEventListeners() {
         app.fieldTrailDuration = duration;
         app.renderer.setFieldTrailDuration(duration);
         console.log('Field trail duration updated to:', duration + 's');
+    });
+    
+    app.eventBus.on('toggleSoundWaves', () => {
+        app.soundVisualizationEnabled = !app.soundVisualizationEnabled;
+        app.renderer.toggleSoundWaves();
+        console.log('Sound waves', app.soundVisualizationEnabled ? 'visible' : 'hidden');
+        
+        // Update checkbox state if needed
+        const checkbox = document.getElementById('soundWavesCheckbox');
+        if (checkbox) {
+            checkbox.checked = app.soundVisualizationEnabled;
+        }
     });
     
     // Window resize
@@ -928,6 +1264,21 @@ function addRandomBand() {
 
 // Clear all bands
 function clearAllBands() {
+    // Stop all sounds
+    app.bands.forEach(band => {
+        if (band.isEmittingSound) {
+            band.stopSoundEmission();
+        }
+        if (band.isResonating) {
+            band.stopResonating();
+        }
+        app.audioManager.stopSpatialSound(band);
+    });
+    
+    // Clean up all audio
+    app.audioManager.cleanupSpatialSounds();
+    app.audioManager.cleanupResonatingBands();
+    
     // Remove from physics engine
     app.bands.forEach(band => {
         app.engine.removeBand(band);
@@ -988,6 +1339,11 @@ function exportBands() {
             bandAIndex: app.bands.indexOf(t.bandA),
             bandBIndex: app.bands.indexOf(t.bandB)
         })),
+        listener: app.listener ? {
+            position: app.listener.position,
+            direction: app.listener.direction,
+            listeningRadius: app.listener.listeningRadius
+        } : null,
         settings: {
             interactionRules: app.interactionRules,
             fieldStrengthSliderValue: app.fieldStrengthSliderValue,
@@ -1000,7 +1356,9 @@ function exportBands() {
             mergeMode: app.mergeMode,
             speedLimit: app.speedLimit,
             fieldTrailsEnabled: app.fieldTrailsEnabled,
-            fieldTrailDuration: app.fieldTrailDuration
+            fieldTrailDuration: app.fieldTrailDuration,
+            soundVisualizationEnabled: app.soundVisualizationEnabled,
+            listenerFieldInteractionEnabled: app.listenerFieldInteractionEnabled
         }
     };
     
@@ -1045,6 +1403,7 @@ function resizeCanvas() {
 // Animation loop
 let lastTime = 0;
 let frameCount = 0;
+let lastSoundCleanup = 0;
 
 function animate(currentTime = 0) {
     const deltaTime = (currentTime - lastTime) / 1000; // Convert to seconds
@@ -1055,6 +1414,39 @@ function animate(currentTime = 0) {
     if (frameCount % 60 === 0) {
         const fps = Math.round(1 / deltaTime);
         document.getElementById('fps').textContent = fps;
+    }
+    
+    // Check for resonance
+    checkForResonance();
+    
+    // Update spatial sounds if listener exists
+    if (app.listener) {
+        app.audioManager.updateSpatialSounds(app.bands);
+        
+        // Periodic cleanup check every second to catch any stuck sounds
+        if (currentTime - lastSoundCleanup > 1000) {
+            lastSoundCleanup = currentTime;
+            
+            // Force check all bands to ensure sounds match emission state
+            app.bands.forEach(band => {
+                if (!band.isEmittingSound && app.audioManager.activeSpatialSounds.has(band)) {
+                    console.log('Cleaning up stuck sound for band at', band.frequency, 'Hz');
+                    app.audioManager.stopSpatialSound(band);
+                }
+                
+                // Also clean up resonance if the source is no longer emitting
+                if (band.isResonating && band.resonanceSource && !band.resonanceSource.isEmittingSound) {
+                    band.stopResonating();
+                    app.audioManager.stopResonance(band);
+                }
+            });
+            
+            // Debug log (comment out in production)
+            const debugInfo = app.audioManager.getDebugInfo();
+            if (debugInfo.activeSpatialSounds > 0) {
+                // console.log('Active sounds:', debugInfo);
+            }
+        }
     }
     
     // Update physics
@@ -1082,6 +1474,28 @@ function animate(currentTime = 0) {
                 bandB.lastAppliedForce = forceOnB;
                 bandA.lastAppliedForce = forceOnA;
             }
+        }
+        
+        // Apply field forces on listener if enabled
+        if (app.listener && app.listenerFieldInteractionEnabled) {
+            let totalForce = { x: 0, y: 0 };
+            
+            app.bands.forEach(band => {
+                if (!band.isInHarmonyRing) {
+                    // Calculate field influence on listener
+                    const force = band.getFieldInfluenceOn(
+                        { position: app.listener.position, charge: 1 }, // Listener has neutral/positive charge
+                        app.interactionRules,
+                        app.fieldStrengthMultiplier
+                    );
+                    
+                    totalForce.x += force.x;
+                    totalForce.y += force.y;
+                }
+            });
+            
+            // Apply force to listener
+            app.listener.applyForce(totalForce);
         }
         
         // Update physics engine
@@ -1151,6 +1565,12 @@ function animate(currentTime = 0) {
                 });
             }
         });
+        
+        // Update listener
+        if (app.listener) {
+            app.listener.update(deltaTime);
+            app.listener.constrainToBounds(app.canvas.width, app.canvas.height);
+        }
     } else {
         // Even if physics is disabled, update band animations and check boundaries
         app.bands.forEach(band => {
@@ -1185,12 +1605,23 @@ function animate(currentTime = 0) {
                 });
             }
         });
+        
+        // Update listener even with physics off
+        if (app.listener) {
+            app.listener.update(deltaTime);
+        }
     }
+    
+    // Update sound ripples
+    app.renderer.updateSoundRipples(app.bands);
     
     // Render the scene
     app.renderer.clear();
     
-    // Render tethers first (behind bands)
+    // Render sound ripples first (behind everything)
+    app.renderer.renderSoundRipples();
+    
+    // Render tethers (behind bands)
     app.renderer.renderTethers(app.tethers);
     
     // Render bands
@@ -1206,6 +1637,11 @@ function animate(currentTime = 0) {
             });
         }
     });
+    
+    // Render listener on top
+    if (app.listener) {
+        app.renderer.renderListener(app.listener);
+    }
     
     // Continue animation
     app.animationId = requestAnimationFrame(animate);

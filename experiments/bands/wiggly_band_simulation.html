@@ -61,6 +61,10 @@
                 <span class="status-label">FPS</span>
                 <span id="fps" class="status-value">60</span>
             </div>
+            <div class="status-item">
+                <span class="status-label">Listener</span>
+                <span id="listenerStatus" class="status-value">OFF</span>
+            </div>
         </div>
         
         <!-- Controls sidebar (hidden by default) -->
@@ -140,6 +144,58 @@
                             </svg>
                             Stop
                         </button>
+                    </div>
+                </div>
+                
+                <!-- Listener Controls Accordion -->
+                <div class="accordion-header">
+                    <svg class="accordion-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 18v-6a9 9 0 0 1 18 0v6"></path>
+                        <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path>
+                    </svg>
+                    Listener
+                </div>
+                <div class="accordion-content">
+                    <div class="control-group button-group">
+                        <button id="placeListener" class="control-btn">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 5v14m-7-7h14"></path>
+                            </svg>
+                            Place Listener
+                        </button>
+                        <button id="removeListener" class="control-btn danger" disabled>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                            Remove
+                        </button>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label>Listening Radius</label>
+                        <div class="control-input-group">
+                            <input type="range" id="listeningRadius" min="50" max="800" value="300" step="10" disabled>
+                            <span id="listeningRadiusDisplay" class="value-display">300</span>
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <button id="toggleListenerRange" class="control-btn" disabled>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="3"></circle>
+                                <circle cx="12" cy="12" r="8"></circle>
+                            </svg>
+                            Toggle Range
+                        </button>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="listenerFieldInteraction">
+                            <span class="checkbox-custom"></span>
+                            Listener Field Interaction
+                        </label>
                     </div>
                 </div>
                 
@@ -307,6 +363,18 @@
                             </svg>
                             Band Shapes
                         </button>
+                        <button id="toggleSoundWaves" class="control-btn">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 2v20"></path>
+                                <path d="M2 12h4"></path>
+                                <path d="M18 12h4"></path>
+                                <path d="M3 7h3"></path>
+                                <path d="M18 7h3"></path>
+                                <path d="M3 17h3"></path>
+                                <path d="M18 17h3"></path>
+                            </svg>
+                            Sound Waves
+                        </button>
                     </div>
                 </div>
                 
@@ -333,6 +401,14 @@
                             <span id="fieldTrailDurationDisplay" class="value-display">2.0</span>
                         </div>
                     </div>
+                    
+                    <div class="control-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="soundWavesCheckbox" checked>
+                            <span class="checkbox-custom"></span>
+                            Sound Wave Visualization
+                        </label>
+                    </div>
                 </div>
             </div>
         </div>
@@ -351,6 +427,17 @@
                         <li><strong>Click anywhere</strong> on the canvas to add a wiggly band</li>
                         <li>Use the <strong>controls panel</strong> to adjust band properties</li>
                         <li>Bands interact through <strong>charge fields</strong></li>
+                    </ul>
+                </div>
+                
+                <div class="info-section">
+                    <h4>Listener Entity</h4>
+                    <ul>
+                        <li><strong>Place Listener:</strong> Adds a listener at the center of the canvas</li>
+                        <li><strong>Drag to move:</strong> Click and drag the listener around</li>
+                        <li><strong>Listening Radius:</strong> Controls how far the listener can hear</li>
+                        <li><strong>Spatial Audio:</strong> Bands sound different based on position relative to listener</li>
+                        <li><strong>Direction:</strong> Red arrow shows where the listener is facing</li>
                     </ul>
                 </div>
                 
@@ -390,11 +477,13 @@
                     <ul>
                         <li><kbd>Space</kbd> - Toggle physics</li>
                         <li><kbd>R</kbd> - Add random band</li>
+                        <li><kbd>L</kbd> - Toggle listener (place/remove)</li>
                         <li><kbd>H</kbd> - Cycle harmonize behaviors</li>
                         <li><kbd>T</kbd> - Toggle field trails</li>
                         <li><kbd>F</kbd> - Toggle field points</li>
                         <li><kbd>V</kbd> - Toggle band visibility</li>
                         <li><kbd>M</kbd> - Toggle collision sounds</li>
+                        <li><kbd>W</kbd> - Toggle sound waves</li>
                         <li><kbd>P</kbd> - Play tone</li>
                         <li><kbd>S</kbd> - Stop tone</li>
                     </ul>

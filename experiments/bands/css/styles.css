@@ -56,6 +56,11 @@ body {
     max-height: calc(100vh - 40px);
 }
 
+/* Change cursor when dragging */
+#canvas.dragging {
+    cursor: move;
+}
+
 /* Floating Action Buttons (FABs) */
 #floatingButtons {
     position: fixed;

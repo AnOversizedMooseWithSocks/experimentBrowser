@@ -1,5 +1,6 @@
 // Controls.js - Handles all UI controls and user input
-// Updated to support new toggle functionality and improved UI
+// Updated to support listener entity controls
+// Now includes listener placement, removal, and listening radius control
 
 export class Controls {
     constructor(eventBus) {
@@ -42,6 +43,13 @@ export class Controls {
             fieldTrailDuration: document.getElementById('fieldTrailDuration'),
             fieldTrailDurationDisplay: document.getElementById('fieldTrailDurationDisplay'),
             
+            // Listener controls
+            placeListener: document.getElementById('placeListener'),
+            removeListener: document.getElementById('removeListener'),
+            listeningRadius: document.getElementById('listeningRadius'),
+            listeningRadiusDisplay: document.getElementById('listeningRadiusDisplay'),
+            toggleListenerRange: document.getElementById('toggleListenerRange'),
+            
             // Harmonize behavior select
             harmonizeBehavior: document.getElementById('harmonizeBehavior'),
             mergeMode: document.getElementById('mergeMode'),
@@ -55,10 +63,13 @@ export class Controls {
             exportBands: document.getElementById('exportBands'),
             toggleFieldPoints: document.getElementById('toggleFieldPoints'),
             toggleBandVisibility: document.getElementById('toggleBandVisibility'),
+            toggleSoundWaves: document.getElementById('toggleSoundWaves'),
             
             // Checkboxes
             collisionSounds: document.getElementById('collisionSounds'),
             fieldTrails: document.getElementById('fieldTrails'),
+            soundWavesCheckbox: document.getElementById('soundWavesCheckbox'), 
+            listenerFieldInteraction: document.getElementById('listenerFieldInteraction'),
             
             // Interaction rule selects
             negToPos: document.getElementById('negToPos'),
@@ -79,7 +90,7 @@ export class Controls {
         // Initialize accordions
         this.initializeAccordions();
         
-        console.log('Controls initialized with new UI');
+        console.log('Controls initialized with listener controls');
     }
     
     /**
@@ -136,6 +147,25 @@ export class Controls {
         // Optional: close sidebar when opening info panel
         if (this.infoPanelOpen && this.sidebarOpen) {
             this.toggleSidebar();
+        }
+    }
+    
+    /**
+     * Update listener control states
+     * @param {boolean} hasListener - Whether a listener is currently placed
+     */
+    updateListenerControls(hasListener) {
+        if (this.elements.placeListener) {
+            this.elements.placeListener.disabled = hasListener;
+        }
+        if (this.elements.removeListener) {
+            this.elements.removeListener.disabled = !hasListener;
+        }
+        if (this.elements.listeningRadius) {
+            this.elements.listeningRadius.disabled = !hasListener;
+        }
+        if (this.elements.toggleListenerRange) {
+            this.elements.toggleListenerRange.disabled = !hasListener;
         }
     }
     
@@ -255,6 +285,33 @@ export class Controls {
             this.eventBus.emit('updateFieldTrailDuration', parseFloat(value));
         });
         
+        // Listener controls
+        if (this.elements.placeListener) {
+            this.elements.placeListener.addEventListener('click', () => {
+                this.eventBus.emit('placeListener');
+            });
+        }
+        
+        if (this.elements.removeListener) {
+            this.elements.removeListener.addEventListener('click', () => {
+                this.eventBus.emit('removeListener');
+            });
+        }
+        
+        if (this.elements.listeningRadius) {
+            this.elements.listeningRadius.addEventListener('input', () => {
+                const value = this.elements.listeningRadius.value;
+                this.elements.listeningRadiusDisplay.textContent = value;
+                this.eventBus.emit('updateListeningRadius', parseFloat(value));
+            });
+        }
+        
+        if (this.elements.toggleListenerRange) {
+            this.elements.toggleListenerRange.addEventListener('click', () => {
+                this.eventBus.emit('toggleListenerRange');
+            });
+        }
+        
         // Harmonize behavior control
         this.elements.harmonizeBehavior.addEventListener('change', () => {
             this.eventBus.emit('updateHarmonizeBehavior', this.elements.harmonizeBehavior.value);
@@ -274,6 +331,20 @@ export class Controls {
         this.elements.fieldTrails.addEventListener('change', () => {
             this.eventBus.emit('toggleFieldTrails', this.elements.fieldTrails.checked);
         });
+        
+        // Sound waves checkbox
+        if (this.elements.soundWavesCheckbox) {
+            this.elements.soundWavesCheckbox.addEventListener('change', () => {
+                this.eventBus.emit('toggleSoundWaves');
+            });
+        }
+        
+        // Listener field interaction checkbox
+        if (this.elements.listenerFieldInteraction) {
+            this.elements.listenerFieldInteraction.addEventListener('change', () => {
+                this.eventBus.emit('toggleListenerFieldInteraction', this.elements.listenerFieldInteraction.checked);
+            });
+        }
         
         // Button events
         this.elements.addRandomBand.addEventListener('click', () => {
@@ -310,6 +381,13 @@ export class Controls {
         this.elements.toggleBandVisibility.addEventListener('click', () => {
             this.eventBus.emit('toggleBandVisibility');
         });
+        
+        // Sound waves toggle button
+        if (this.elements.toggleSoundWaves) {
+            this.elements.toggleSoundWaves.addEventListener('click', () => {
+                this.eventBus.emit('toggleSoundWaves');
+            });
+        }
         
         // Interaction rule controls
         this.elements.negToPos.addEventListener('change', () => {
@@ -385,6 +463,17 @@ export class Controls {
                 this.elements.fieldTrails.checked = !this.elements.fieldTrails.checked;
                 this.eventBus.emit('toggleFieldTrails', this.elements.fieldTrails.checked);
                 break;
+            case 'w':
+                // Toggle sound waves with 'w' key
+                if (this.elements.soundWavesCheckbox) {
+                    this.elements.soundWavesCheckbox.checked = !this.elements.soundWavesCheckbox.checked;
+                }
+                this.eventBus.emit('toggleSoundWaves');
+                break;
+            case 'l':
+                // Toggle listener with 'l' key
+                this.eventBus.emit('toggleListener');
+                break;
         }
     }
     
@@ -405,8 +494,11 @@ export class Controls {
             soundFade: parseFloat(this.elements.soundFade.value),
             speedLimit: parseFloat(this.elements.speedLimit.value),
             fieldTrailDuration: parseFloat(this.elements.fieldTrailDuration.value),
+            listeningRadius: this.elements.listeningRadius ? parseFloat(this.elements.listeningRadius.value) : 300,
             collisionSounds: this.elements.collisionSounds.checked,
             fieldTrails: this.elements.fieldTrails.checked,
+            soundWaves: this.elements.soundWavesCheckbox ? this.elements.soundWavesCheckbox.checked : true,
+            listenerFieldInteraction: this.elements.listenerFieldInteraction ? this.elements.listenerFieldInteraction.checked : false,
             harmonizeBehavior: this.elements.harmonizeBehavior.value,
             mergeMode: this.elements.mergeMode.value
         };
@@ -475,12 +567,25 @@ export class Controls {
             this.elements.fieldTrailDurationDisplay.textContent = values.fieldTrailDuration;
         }
         
+        if (values.listeningRadius !== undefined && this.elements.listeningRadius) {
+            this.elements.listeningRadius.value = values.listeningRadius;
+            this.elements.listeningRadiusDisplay.textContent = values.listeningRadius;
+        }
+        
         if (values.collisionSounds !== undefined) {
             this.elements.collisionSounds.checked = values.collisionSounds;
         }
         
         if (values.fieldTrails !== undefined) {
             this.elements.fieldTrails.checked = values.fieldTrails;
+        }
+        
+        if (values.soundWaves !== undefined && this.elements.soundWavesCheckbox) {
+            this.elements.soundWavesCheckbox.checked = values.soundWaves;
+        }
+        
+        if (values.listenerFieldInteraction !== undefined && this.elements.listenerFieldInteraction) {
+            this.elements.listenerFieldInteraction.checked = values.listenerFieldInteraction;
         }
         
         if (values.harmonizeBehavior !== undefined) {

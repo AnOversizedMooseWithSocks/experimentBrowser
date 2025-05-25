@@ -1,5 +1,6 @@
 // Renderer.js - Handles all canvas rendering
-// Responsible for drawing bands and their fields
+// Responsible for drawing bands, their fields, and the listener entity
+// Updated to include listener visualization with direction and range
 
 export class Renderer {
     constructor(canvas) {
@@ -10,12 +11,17 @@ export class Renderer {
         this.showFields = true;
         this.showFieldPoints = true;  // Turn on by default for debugging
         this.showBandShapes = true;   // Toggle for band shape visibility
+        this.showSoundWaves = true;   // Toggle for sound visualization (on by default)
         this.trailEffect = true;
+        this.showListenerRange = true; // Toggle for listener range visibility
         
         // Field trails
         this.fieldTrailsEnabled = false; // Will be set by app initialization
         this.fieldTrailDuration = 2.0; // seconds
         this.fieldTrails = new Map(); // Map of band ID to trail points
+        
+        // Sound ripples tracking
+        this.soundRipples = []; // Array of active ripples
         
         console.log('Renderer initialized');
     }
@@ -32,6 +38,329 @@ export class Renderer {
             this.ctx.fillStyle = 'rgba(10, 10, 10, 0.1)';
             this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
         }
+    }
+    
+    /**
+     * Render the listener entity
+     * @param {Listener} listener - The listener to render
+     */
+    renderListener(listener) {
+        if (!listener) return;
+        
+        this.ctx.save();
+        
+        // Draw listening radius if enabled
+        if (this.showListenerRange && listener.showListeningRadius) {
+            // Draw the listening area
+            this.ctx.beginPath();
+            this.ctx.arc(listener.position.x, listener.position.y, listener.listeningRadius, 0, Math.PI * 2);
+            
+            // Gradient fill for listening area
+            const gradient = this.ctx.createRadialGradient(
+                listener.position.x, listener.position.y, 0,
+                listener.position.x, listener.position.y, listener.listeningRadius
+            );
+            gradient.addColorStop(0, 'rgba(255, 221, 68, 0.05)');
+            gradient.addColorStop(0.5, 'rgba(255, 221, 68, 0.02)');
+            gradient.addColorStop(1, 'transparent');
+            this.ctx.fillStyle = gradient;
+            this.ctx.fill();
+            
+            // Draw the listening radius border
+            this.ctx.strokeStyle = 'rgba(255, 221, 68, 0.3)';
+            this.ctx.lineWidth = 2;
+            this.ctx.setLineDash([5, 10]);
+            this.ctx.stroke();
+            this.ctx.setLineDash([]);
+        }
+        
+        // Draw pulsing effect
+        const pulseScale = 1 + Math.sin(listener.pulseTime * 3) * 0.1;
+        
+        // Draw outer glow
+        const glowRadius = listener.radius * pulseScale * 1.5;
+        const glowGradient = this.ctx.createRadialGradient(
+            listener.position.x, listener.position.y, 0,
+            listener.position.x, listener.position.y, glowRadius
+        );
+        glowGradient.addColorStop(0, 'rgba(255, 221, 68, 0.3)');
+        glowGradient.addColorStop(1, 'transparent');
+        this.ctx.fillStyle = glowGradient;
+        this.ctx.beginPath();
+        this.ctx.arc(listener.position.x, listener.position.y, glowRadius, 0, Math.PI * 2);
+        this.ctx.fill();
+        
+        // Draw the listener body
+        this.ctx.beginPath();
+        this.ctx.arc(listener.position.x, listener.position.y, listener.radius * pulseScale, 0, Math.PI * 2);
+        
+        // Gradient fill for body
+        const bodyGradient = this.ctx.createRadialGradient(
+            listener.position.x - listener.radius * 0.3, 
+            listener.position.y - listener.radius * 0.3, 
+            0,
+            listener.position.x, listener.position.y, listener.radius
+        );
+        bodyGradient.addColorStop(0, '#ffeb3b');
+        bodyGradient.addColorStop(0.7, listener.color);
+        bodyGradient.addColorStop(1, '#ff9800');
+        this.ctx.fillStyle = bodyGradient;
+        this.ctx.fill();
+        
+        // Draw border
+        this.ctx.strokeStyle = '#ff9800';
+        this.ctx.lineWidth = 3;
+        this.ctx.stroke();
+        
+        // Draw direction indicator
+        const forward = listener.getForwardVector();
+        const arrowLength = listener.radius * 1.8;
+        const arrowTipX = listener.position.x + forward.x * arrowLength;
+        const arrowTipY = listener.position.y + forward.y * arrowLength;
+        
+        // Draw direction line
+        this.ctx.beginPath();
+        this.ctx.moveTo(listener.position.x, listener.position.y);
+        this.ctx.lineTo(arrowTipX, arrowTipY);
+        this.ctx.strokeStyle = '#ff6b6b';
+        this.ctx.lineWidth = 4;
+        this.ctx.stroke();
+        
+        // Draw arrowhead
+        const arrowSize = 12;
+        const arrowAngle = Math.atan2(forward.y, forward.x);
+        
+        this.ctx.beginPath();
+        this.ctx.moveTo(arrowTipX, arrowTipY);
+        this.ctx.lineTo(
+            arrowTipX - arrowSize * Math.cos(arrowAngle - Math.PI / 6),
+            arrowTipY - arrowSize * Math.sin(arrowAngle - Math.PI / 6)
+        );
+        this.ctx.moveTo(arrowTipX, arrowTipY);
+        this.ctx.lineTo(
+            arrowTipX - arrowSize * Math.cos(arrowAngle + Math.PI / 6),
+            arrowTipY - arrowSize * Math.sin(arrowAngle + Math.PI / 6)
+        );
+        this.ctx.strokeStyle = '#ff6b6b';
+        this.ctx.lineWidth = 4;
+        this.ctx.stroke();
+        
+        // Draw inner ear icon
+        this.ctx.save();
+        this.ctx.translate(listener.position.x, listener.position.y);
+        this.ctx.rotate(listener.direction);
+        
+        // Simplified ear shape
+        this.ctx.beginPath();
+        this.ctx.arc(0, 0, listener.radius * 0.5, -Math.PI * 0.7, Math.PI * 0.7);
+        this.ctx.strokeStyle = '#fff';
+        this.ctx.lineWidth = 3;
+        this.ctx.stroke();
+        
+        // Inner ear detail
+        this.ctx.beginPath();
+        this.ctx.arc(5, 0, listener.radius * 0.3, -Math.PI * 0.5, Math.PI * 0.5);
+        this.ctx.stroke();
+        
+        this.ctx.restore();
+        
+        // Draw status text if dragging
+        if (listener.isDragging) {
+            this.ctx.font = '12px Arial';
+            this.ctx.fillStyle = '#fff';
+            this.ctx.textAlign = 'center';
+            this.ctx.fillText(
+                `(${Math.round(listener.position.x)}, ${Math.round(listener.position.y)})`,
+                listener.position.x,
+                listener.position.y - listener.radius - 10
+            );
+        }
+        
+        this.ctx.restore();
+    }
+    
+    /**
+     * Update sound ripples for all bands that are emitting sound
+     * @param {Array} bands - Array of all bands
+     */
+    updateSoundRipples(bands) {
+        if (!this.showSoundWaves) return; // Don't update if sound waves are hidden
+        
+        // Remove old ripples
+        this.soundRipples = this.soundRipples.filter(ripple => {
+            const age = (Date.now() - ripple.startTime) / 1000;
+            return age < ripple.maxAge;
+        });
+        
+        // Add new ripples for bands that just started emitting
+        bands.forEach(band => {
+            if (band.isEmittingSound && !band.isInHarmonyRing) {
+                // Check if we already have recent ripples for this band
+                const hasRecentRipple = this.soundRipples.some(ripple => 
+                    ripple.band === band && 
+                    (Date.now() - ripple.startTime) < 200 // Less than 200ms old
+                );
+                
+                if (!hasRecentRipple) {
+                    // Calculate the starting radius (band surface)
+                    const bandRadius = Math.max(band.radiusX, band.radiusY);
+                    
+                    // Calculate max radius based on amplitude
+                    // Amplitude 5-50 maps to 2x-10x band diameter
+                    const ampNormalized = (band.amplitude - 5) / 45; // 0 to 1
+                    const radiusMultiplier = 2 + ampNormalized * 8; // 2x to 10x
+                    const maxRadius = bandRadius * radiusMultiplier;
+                    
+                    // Create a new ripple
+                    this.soundRipples.push({
+                        band: band,
+                        x: band.position.x,
+                        y: band.position.y,
+                        startTime: Date.now(),
+                        startRadius: bandRadius, // Start from band surface
+                        maxRadius: maxRadius,
+                        maxAge: 3, // Ripple lasts 3 seconds
+                        color: band.color,
+                        frequency: band.frequency
+                    });
+                }
+            }
+        });
+    }
+    
+    /**
+     * Render sound ripples
+     */
+    renderSoundRipples() {
+        if (!this.showSoundWaves) return;
+        
+        this.ctx.save();
+        
+        this.soundRipples.forEach(ripple => {
+            const age = (Date.now() - ripple.startTime) / 1000; // Age in seconds
+            const ageRatio = age / ripple.maxAge;
+            
+            // Create multiple concentric circles for the ripple effect
+            const numCircles = 5;
+            for (let i = 0; i < numCircles; i++) {
+                const circleAge = ageRatio - (i * 0.1);
+                if (circleAge < 0 || circleAge > 1) continue;
+                
+                // Calculate radius for this circle
+                const radius = ripple.maxRadius * circleAge;
+                
+                // Calculate opacity (fade out as it expands)
+                const opacity = (1 - circleAge) * 0.3;
+                
+                // Draw the circle
+                this.ctx.beginPath();
+                this.ctx.arc(ripple.x, ripple.y, radius, 0, Math.PI * 2);
+                this.ctx.strokeStyle = ripple.color + Math.floor(opacity * 255).toString(16).padStart(2, '0');
+                this.ctx.lineWidth = 2 + (1 - circleAge) * 3; // Thicker when younger
+                this.ctx.stroke();
+            }
+        });
+        
+        this.ctx.restore();
+    }
+    
+    /**
+     * Render resonance glow for a band
+     * @param {WigglyBand} band - The resonating band
+     */
+    renderResonanceGlow(band) {
+        if (!band.isResonating) return;
+        
+        this.ctx.save();
+        
+        // Create pulsing glow effect
+        // The glow pulsates to show the band is resonating with another band's sound
+        const glowRadius = Math.max(band.radiusX, band.radiusY) * (1.5 + band.resonanceGlow);
+        
+        // Multiple layers for softer glow
+        for (let i = 3; i >= 0; i--) {
+            const layerRadius = glowRadius * (1 + i * 0.2);
+            const opacity = band.resonanceGlow * (0.1 / (i + 1));
+            
+            const gradient = this.ctx.createRadialGradient(
+                band.position.x, band.position.y, 0,
+                band.position.x, band.position.y, layerRadius
+            );
+            
+            gradient.addColorStop(0, band.color + Math.floor(opacity * 255).toString(16).padStart(2, '0'));
+            gradient.addColorStop(1, 'transparent');
+            
+            this.ctx.fillStyle = gradient;
+            this.ctx.beginPath();
+            this.ctx.arc(band.position.x, band.position.y, layerRadius, 0, Math.PI * 2);
+            this.ctx.fill();
+        }
+        
+        // Add small ripples for resonating bands
+        if (this.showSoundWaves) {
+            const resonanceAge = (Date.now() - band.resonanceStartTime) / 1000;
+            const pulseRadius = (Math.max(band.radiusX, band.radiusY) + 20) + 
+                               Math.sin(resonanceAge * 6) * 10;
+            
+            this.ctx.beginPath();
+            this.ctx.arc(band.position.x, band.position.y, pulseRadius, 0, Math.PI * 2);
+            this.ctx.strokeStyle = band.color + '60';
+            this.ctx.lineWidth = 2;
+            this.ctx.setLineDash([5, 5]);
+            this.ctx.stroke();
+            this.ctx.setLineDash([]);
+        }
+        
+        this.ctx.restore();
+    }
+    
+    /**
+     * Render sound emission indicator
+     * @param {WigglyBand} band - The band emitting sound
+     */
+    renderSoundEmissionIndicator(band) {
+        if (!band.isEmittingSound || !this.showSoundWaves) return;
+        
+        this.ctx.save();
+        
+        // Draw speaker icon or musical note
+        const iconSize = 20; // Increased from 16
+        const iconX = band.position.x;
+        const iconY = band.position.y - band.radiusY - 30; // Increased offset
+        
+        // Pulsing effect
+        const pulseScale = 1 + Math.sin(Date.now() * 0.005) * 0.3; // Increased pulse
+        
+        // Add glow effect behind the note
+        const glowRadius = iconSize * pulseScale * 0.8;
+        const gradient = this.ctx.createRadialGradient(iconX, iconY, 0, iconX, iconY, glowRadius);
+        gradient.addColorStop(0, band.color + '40');
+        gradient.addColorStop(1, 'transparent');
+        this.ctx.fillStyle = gradient;
+        this.ctx.beginPath();
+        this.ctx.arc(iconX, iconY, glowRadius, 0, Math.PI * 2);
+        this.ctx.fill();
+        
+        // Draw the note
+        this.ctx.font = `bold ${iconSize * pulseScale}px Arial`;
+        this.ctx.textAlign = 'center';
+        this.ctx.textBaseline = 'middle';
+        this.ctx.fillStyle = band.color;
+        this.ctx.fillText('♪', iconX, iconY);
+        
+        // Draw volume indicator bars
+        const volumeBars = 3;
+        for (let i = 0; i < volumeBars; i++) {
+            const barHeight = 6 + i * 3; // Increased size
+            const barX = iconX + 15 + i * 5;
+            const barY = iconY - barHeight / 2;
+            const opacity = band.soundEmissionVolume > (i * 0.3) ? 1 : 0.3;
+            
+            this.ctx.fillStyle = band.color + Math.floor(opacity * 255).toString(16).padStart(2, '0');
+            this.ctx.fillRect(barX, barY, 3, barHeight);
+        }
+        
+        this.ctx.restore();
     }
     
     /**
@@ -111,6 +440,9 @@ export class Renderer {
     renderBand(band) {
         this.ctx.save();
         
+        // Render resonance glow first (behind everything)
+        this.renderResonanceGlow(band);
+        
         // Draw the field visualization if enabled
         if (this.showFields && !band.isInHarmonyRing) {
             this.renderField(band);
@@ -147,6 +479,9 @@ export class Renderer {
         if (band.isOscillating) {
             this.renderOscillatingIndicator(band);
         }
+        
+        // Draw sound emission indicator
+        this.renderSoundEmissionIndicator(band);
         
         // Draw deformation indicator (optional - for debugging)
         if (false) { // Set to true to see deformation values
@@ -201,12 +536,21 @@ export class Renderer {
             this.ctx.stroke();
         } else {
             // Normal band styling
-            this.ctx.fillStyle = band.color + '40'; // 40 = ~25% opacity
+            let fillOpacity = '40'; // Default: 40 = ~25% opacity
+            let strokeWidth = 2;
+            
+            // Make emitting bands slightly brighter
+            if (band.isEmittingSound) {
+                fillOpacity = '60'; // Brighter fill
+                strokeWidth = 3;    // Thicker stroke
+            }
+            
+            this.ctx.fillStyle = band.color + fillOpacity;
             this.ctx.fill();
             
             // Stroke the outline
             this.ctx.strokeStyle = band.color;
-            this.ctx.lineWidth = 2;
+            this.ctx.lineWidth = strokeWidth;
             this.ctx.stroke();
         }
         
@@ -416,10 +760,26 @@ export class Renderer {
     }
     
     /**
+     * Toggle sound wave visualization
+     */
+    toggleSoundWaves() {
+        this.showSoundWaves = !this.showSoundWaves;
+        console.log('Sound waves', this.showSoundWaves ? 'visible' : 'hidden');
+    }
+    
+    /**
      * Toggle trail effect
      */
     toggleTrailEffect() {
         this.trailEffect = !this.trailEffect;
+    }
+    
+    /**
+     * Toggle listener range visibility
+     */
+    toggleListenerRange() {
+        this.showListenerRange = !this.showListenerRange;
+        console.log('Listener range', this.showListenerRange ? 'visible' : 'hidden');
     }
     
     /**

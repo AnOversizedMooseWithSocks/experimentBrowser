@@ -1,5 +1,6 @@
 // WigglyBand.js - The main entity class for wiggly bands
 // Represents an oscillating elliptical band with physics properties
+// Updated to support sound emission visualization
 
 export class WigglyBand {
     constructor(x, y, options = {}) {
@@ -50,6 +51,16 @@ export class WigglyBand {
         this.oscillateTime = 0;
         this.oscillatePeriod = 3; // seconds per full cycle
         
+        // Sound emission properties
+        this.isEmittingSound = false;
+        this.soundEmissionStartTime = 0;
+        this.soundEmissionDuration = 0; // How long the sound will play
+        this.soundEmissionVolume = 0; // Current volume (for fading)
+        this.isResonating = false; // Is this band resonating from another's sound?
+        this.resonanceSource = null; // Reference to the band causing resonance
+        this.resonanceStartTime = 0;
+        this.resonanceGlow = 0; // Glow intensity for resonating bands
+        
         // Generate color based on properties
         this.updateColor();
         
@@ -69,6 +80,67 @@ export class WigglyBand {
         
         // Initialize oscillation points
         this.updateOscillationPoints();
+    }
+    
+    /**
+     * Start emitting sound
+     * @param {number} duration - How long to emit sound (in ms)
+     * @param {number} volume - Initial volume (0-1)
+     */
+    startSoundEmission(duration, volume = 0.1) {
+        this.isEmittingSound = true;
+        this.soundEmissionStartTime = Date.now();
+        this.soundEmissionDuration = duration;
+        this.soundEmissionVolume = volume;
+    }
+    
+    /**
+     * Stop emitting sound
+     */
+    stopSoundEmission() {
+        this.isEmittingSound = false;
+        this.soundEmissionVolume = 0;
+    }
+    
+    /**
+     * Start resonating from another band's sound
+     * @param {WigglyBand} sourceBand - The band causing this resonance
+     */
+    startResonating(sourceBand) {
+        if (!this.isResonating) {
+            this.isResonating = true;
+            this.resonanceSource = sourceBand;
+            this.resonanceStartTime = Date.now();
+            this.resonanceGlow = 0;
+        }
+    }
+    
+    /**
+     * Stop resonating
+     */
+    stopResonating() {
+        this.isResonating = false;
+        this.resonanceSource = null;
+        this.resonanceGlow = 0;
+    }
+    
+    /**
+     * Get the current sound range based on amplitude and emission state
+     * @returns {number} The radius of sound influence
+     */
+    getSoundRange() {
+        if (!this.isEmittingSound) return 0;
+        
+        // Calculate the band's current radius
+        const bandRadius = Math.max(this.radiusX, this.radiusY);
+        
+        // Calculate max radius based on amplitude
+        // Amplitude 5-50 maps to 2x-10x band diameter
+        const ampNormalized = (this.amplitude - 5) / 45; // 0 to 1
+        const radiusMultiplier = 2 + ampNormalized * 8; // 2x to 10x
+        
+        // Apply volume-based scaling (volume fades over time)
+        return bandRadius * radiusMultiplier * this.soundEmissionVolume;
     }
     
     /**
@@ -236,6 +308,25 @@ export class WigglyBand {
             this.updateOscillatingProperties(deltaTime);
         }
         
+        // Update sound emission state
+        if (this.isEmittingSound) {
+            const elapsed = Date.now() - this.soundEmissionStartTime;
+            if (elapsed >= this.soundEmissionDuration) {
+                this.stopSoundEmission();
+            } else {
+                // Update volume based on fade
+                const fadeProgress = elapsed / this.soundEmissionDuration;
+                this.soundEmissionVolume = (1 - fadeProgress) * 0.15; // Max volume 0.15
+            }
+        }
+        
+        // Update resonance glow
+        if (this.isResonating) {
+            const resonanceAge = (Date.now() - this.resonanceStartTime) / 1000;
+            // Pulsing glow effect
+            this.resonanceGlow = 0.3 + Math.sin(resonanceAge * 8) * 0.2;
+        }
+        
         // Update radius deformation based on forces
         this.updateDeformation(deltaTime);
         
@@ -322,12 +413,22 @@ export class WigglyBand {
         this.oscillationPoints = [];
         const numPoints = 32; // Number of points around the ellipse
         
+        // Apply sound emission pulsing effect to radius
+        let radiusMultiplier = 1;
+        if (this.isEmittingSound) {
+            const emissionAge = (Date.now() - this.soundEmissionStartTime) / 1000;
+            radiusMultiplier = 1 + Math.sin(emissionAge * 8) * 0.05; // Subtle 5% pulse
+        }
+        
+        const currentRadiusX = this.radiusX * radiusMultiplier;
+        const currentRadiusY = this.radiusY * radiusMultiplier;
+        
         for (let i = 0; i < numPoints; i++) {
             const angle = (i / numPoints) * Math.PI * 2;
             
             // Base ellipse calculation
-            const baseX = this.radiusX * Math.cos(angle);
-            const baseY = this.radiusY * Math.sin(angle);
+            const baseX = currentRadiusX * Math.cos(angle);
+            const baseY = currentRadiusY * Math.sin(angle);
             
             // Add oscillation (wiggly effect)
             // The oscillation varies around the ellipse perimeter
